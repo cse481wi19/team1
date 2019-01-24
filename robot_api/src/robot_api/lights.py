@@ -1,8 +1,7 @@
 import rospy
 import robot_api
-# TODO: What will these need to be? ???? abound
+from mobile_base_driver.msg import Led # the ChestLeds is an array of 15 LED, not sure if this is necessary
 from mobile_base_driver.msg import ChestLeds
-# from ????????????.msg import ??????????
 
 class Lights(object):
     """
@@ -64,15 +63,15 @@ class Lights(object):
     @classmethod
     def all_leds(cls, color):
         # TODO: Turn all LEDS to `color`
+        # this was taken from red comments above
         chest_leds = robot_api.Lights()
         chest_leds.put_pixels(
-            [Lights.RED] * Lights.NUM_LEDS
+            [color] * cls
         )
     pass
 
     def __init__(self):
-        # TODO: Find the legendary LED control topic, and its message type
-        self._light_pub = rospy.Publisher("mobile_base_driver", ChestLeds, queue_size=1, latch=True)
+        self._light_pub = rospy.Publisher("/mobile_base/commands/chest_leds", ChestLeds, queue_size=1, latch=True)
         self.off()
 
     def shutdown(self):
@@ -83,7 +82,10 @@ class Lights(object):
             :param pixels: an array of 3-ary tuples
         """
         self._last_pixels = pixels
-        # TODO: Make the magic, and publish it
+        msg = ChestLeds()
+        msg.red = pixels[0]
+        msg.green = pixels[1]
+        msg.blue = pixels[2]
         self._light_pub.publish(msg)
 
     def get_pixels(self):
