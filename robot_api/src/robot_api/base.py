@@ -17,6 +17,7 @@ class Base(object):
     def __init__(self):
         # TODO: Create publisher
         # rospy.init_node('robot_cleaner', anonymous=True)
+        
         # Prod: mobile_base/commands/velocity
         self.pub = rospy.Publisher('/mobile_base_controller/cmd_vel', Twist)
         pass
