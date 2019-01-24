@@ -40,7 +40,12 @@ class Base(object):
         # Create Twist Message
         msg = Twist()
         msg.linear.x = linear_speed
-        msg.linear.y = angular_speed
+        msg.linear.y = linear_speed
+        msg.linear.z = linear_speed
+
+        msg.angular.x = angular_speed
+        msg.angular.y = angular_speed
+        msg.angular.z = angular_speed
 
         self.pub.publish(msg)
 
