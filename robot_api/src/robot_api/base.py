@@ -15,9 +15,7 @@ class Base(object):
     """
 
     def __init__(self):
-        # TODO: Create publisher
-        # rospy.init_node('robot_cleaner', anonymous=True)
-        
+        # Create publisher
         # Prod: mobile_base/commands/velocity
         self.pub = rospy.Publisher('/mobile_base_controller/cmd_vel', Twist)
         pass
@@ -34,20 +32,15 @@ class Base(object):
             angular_speed: The rotation speed, in radians/second. A positive
                 value means the robot should rotate clockwise.
         """
-        # TODO: Create Twist msg
-        # TODO: Fill out msg
-        # TODO: Publish msg
-
         # Create Twist Message
         msg = Twist()
+
+        # Fill out message
         msg.linear.x = linear_speed
         msg.linear.y = linear_speed
-        msg.linear.z = linear_speed
-
-        msg.angular.x = angular_speed
-        msg.angular.y = angular_speed
         msg.angular.z = angular_speed
 
+        # Publish message
         self.pub.publish(msg)
 
         # rospy.logerr('Not implemented.')
@@ -55,14 +48,10 @@ class Base(object):
     def stop(self):
         """Stops the mobile base from moving.
         """
-        # TODO: Publish 0 velocity
+        # Publish 0 velocity
         msg = Twist()
         msg.linear.x = 0.0
         msg.linear.y = 0.0
-        msg.linear.z = 0.0
-
-        msg.angular.x = 0.0
-        msg.angular.y = 0.0
         msg.angular.z = 0.0
 
         self.pub.publish(msg)
