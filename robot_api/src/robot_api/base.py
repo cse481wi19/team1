@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 
-# TODO: import ????????_msgs.msg
 import rospy
+from geometry_msgs.msg import Twist
 
 
 class Base(object):
@@ -16,6 +16,9 @@ class Base(object):
 
     def __init__(self):
         # TODO: Create publisher
+        # rospy.init_node('robot_cleaner', anonymous=True)
+        # Prod: mobile_base/commands/velocity
+        self.pub = rospy.Publisher('/mobile_base_controller/cmd_vel', Twist)
         pass
 
     def move(self, linear_speed, angular_speed):
@@ -33,10 +36,28 @@ class Base(object):
         # TODO: Create Twist msg
         # TODO: Fill out msg
         # TODO: Publish msg
-        rospy.logerr('Not implemented.')
+
+        # Create Twist Message
+        msg = Twist()
+        msg.linear.x = linear_speed
+        msg.linear.y = angular_speed
+
+        self.pub.publish(msg)
+
+        # rospy.logerr('Not implemented.')
 
     def stop(self):
         """Stops the mobile base from moving.
         """
         # TODO: Publish 0 velocity
-        rospy.logerr('Not implemented.')
+        msg = Twist()
+        msg.linear.x = 0.0
+        msg.linear.y = 0.0
+        msg.linear.z = 0.0
+
+        msg.angular.x = 0.0
+        msg.angular.y = 0.0
+        msg.angular.z = 0.0
+
+        self.pub.publish(msg)
+        # rospy.logerr('Not implemented.')
