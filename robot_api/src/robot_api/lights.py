@@ -71,8 +71,9 @@ class Lights(object):
     pass
 
     def __init__(self):
+        # NOTE: cannot simulate this
         # TODO: Find the legendary LED control topic, and its message type
-        self._light_pub = rospy.Publisher("mobile_base_driver", ChestLeds, queue_size=1, latch=True)
+        self._light_pub = rospy.Publisher("/mobile_base/commands/chest_leds", ChestLeds, queue_size=1, latch=True)
         self.off()
 
     def shutdown(self):
