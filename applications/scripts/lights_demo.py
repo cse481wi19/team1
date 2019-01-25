@@ -28,9 +28,11 @@ def main():
     lights = robot_api.Lights()
 
     if command == 'off':
-        rospy.logerr('Not implemented.')
+    	lights.off()
+
     elif command == 'on':
-        rospy.logerr('Not implemented.')
+	lights.put_pixels(Lights.ON)    
+
     else:
         print_usage()
 

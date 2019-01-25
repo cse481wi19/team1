@@ -66,12 +66,14 @@ class Lights(object):
         # this was taken from red comments above
         chest_leds = robot_api.Lights()
         chest_leds.put_pixels(
-            [color] * cls
+            [color] * Lights.NUM_LEDS
         )
+	rospy.loginfo(cls)
+
     pass
 
     def __init__(self):
-        self._light_pub = rospy.Publisher("/mobile_base/commands/chest_leds", ChestLeds, queue_size=1, latch=True)
+        self._light_pub = rospy.Publisher("/mobile_base/commands/chest_leds", ChestLeds, queue_size=10, latch=True)
         self.off()
 
     def shutdown(self):
