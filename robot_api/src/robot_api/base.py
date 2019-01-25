@@ -37,7 +37,6 @@ class Base(object):
 
         # Fill out message
         msg.linear.x = linear_speed
-        msg.linear.y = linear_speed
         msg.angular.z = angular_speed
 
         # Publish message
@@ -51,7 +50,6 @@ class Base(object):
         # Publish 0 velocity
         msg = Twist()
         msg.linear.x = 0.0
-        msg.linear.y = 0.0
         msg.angular.z = 0.0
 
         self.pub.publish(msg)
