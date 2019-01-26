@@ -55,7 +55,7 @@ def main():
             print_usage()
             return
         angle = float(argv[2])
-        head.eyes_to(angle, 120000000)
+        head.eyes_to(angle)
         # rospy.logerr('Not implemented.')
     else:
         print_usage()

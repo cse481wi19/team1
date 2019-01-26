@@ -28,8 +28,8 @@ class Head(object):
     EYES_CLOSED_BLINK = 0.35
     # TODO: Aw shucks, ????? again?!
     # What topics should we send trajectories to for the head and eyes?
-    HEAD_NS = '/head_controller/follow_joint_trajectory/goal' # found on real robot, previously thought to use /command
-    EYES_NS = '/eyelids_controller/follow_joint_trajectory/goal'
+    HEAD_NS = '/head_controller/follow_joint_trajectory' # found on real robot, previously thought to use /command
+    EYES_NS = '/eyelids_controller/follow_joint_trajectory'
 
     # JS was set to none to try to get demo to work, probably shouldn't be
     # Js could stand for something like joint state controller or joint system
@@ -72,15 +72,17 @@ class Head(object):
         
         :param done_cb: Same as send_trajectory's done_cb
         """
+        if(radians < self.EYES_HAPPY or radians > self.EYES_CLOSED):
+            return
         # TODO: Build a JointTrajectoryPoint that expresses the target configuration
         # TODO: Put that point into the right container type, and target the 
         # correct joint.
         point = JointTrajectoryPoint()
-        point.positions = [radians]
-        point.time_from_start = duration
+        point.positions.append(float(radians))
+        point.time_from_start = rospy.Duration(duration)
         trajectory = JointTrajectory()
-        trajectory.points = [point]
-        trajectory.joint_names = ['eyelids_joint']
+        trajectory.points.append(point)
+        trajectory.joint_names.append(self.JOINT_EYES)
         return self.send_trajectory(traj=trajectory, feedback_cb=feedback_cb, done_cb=done_cb)
 
     def is_done(self):
@@ -113,15 +115,19 @@ class Head(object):
         
         :param done_cb: Same as send_trajectory's done_cb
         """
+        if(pan < self.PAN_RIGHT or pan > self.PAN_LEFT):
+            return
+        if(tilt > self.TILT_DOWN or tilt < self.TILT_UP):
+            return
         # TODO: Build a JointTrajectoryPoint that expresses the target configuration
         # TODO: Put that point into the right container type, and target the 
         # correct joint.
         point = JointTrajectoryPoint()
-        point.positions = [pan, tilt]
-        point.time_from_start = duration
+        point.positions = [float(pan), float(tilt)]
+        point.time_from_start = rospy.Duration(duration)
         trajectory = JointTrajectory()
         trajectory.points = [point]
-        trajectory.joint_names = ['head_1_joint', 'head_2_joint']
+        trajectory.joint_names = [self.JOINT_PAN, self.JOINT_TILT]
         return self.send_trajectory(traj=trajectory, feedback_cb=feedback_cb, done_cb=done_cb)
 
     def send_trajectory(self, traj, feedback_cb=None, done_cb=None):
@@ -165,12 +171,14 @@ class Head(object):
                 return False
             self._eyes_goal = goal
             # TODO: How do we actually send the goal?
+            self._eyes_ac.wait_for_server()
             self._eyes_gh = self._eyes_ac.send_goal(goal, _handle_transition, _handle_feedback)
         else:
             if not self._head_ac:
                 return False
             self._head_goal = goal
             # TODO: How do we actually send the goal?
+            self._head_ac.wait_for_server()
             self._head_gh = self._head_ac.send_goal(goal, _handle_transition, _handle_feedback)
         return True
 
