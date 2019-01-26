@@ -18,6 +18,7 @@ class Base(object):
         # Create publisher
         # Prod: mobile_base/commands/velocity
         self.pub = rospy.Publisher('/mobile_base_controller/cmd_vel', Twist)
+        # self.pub = rospy.Publisher('/mobile_base/commands/velocity', Twist)
         pass
 
     def move(self, linear_speed, angular_speed):

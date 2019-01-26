@@ -32,6 +32,7 @@ class Head(object):
     EYES_NS = '/eyelids_controller/follow_joint_trajectory/goal'
 
     # JS was set to none to try to get demo to work, probably shouldn't be
+    # Js could stand for something like joint state controller or joint system
     def __init__(self, js=None, head_ns=None, eyes_ns=None):
         self._js = js
         self._head_gh = None
@@ -76,9 +77,11 @@ class Head(object):
         # correct joint.
         point = JointTrajectoryPoint()
         point.positions = [radians]
+        point.time_from_start = duration
         trajectory = JointTrajectory()
         trajectory.points = [point]
-        return self.send_trajectory(trajectory, feedback_cb=feedback_cb, done_cb=done_cb)
+        trajectory.joint_names = ['eyelids_joint']
+        return self.send_trajectory(traj=trajectory, feedback_cb=feedback_cb, done_cb=done_cb)
 
     def is_done(self):
         active = {
@@ -113,6 +116,12 @@ class Head(object):
         # TODO: Build a JointTrajectoryPoint that expresses the target configuration
         # TODO: Put that point into the right container type, and target the 
         # correct joint.
+        point = JointTrajectoryPoint()
+        point.positions = [pan, tilt]
+        point.time_from_start = duration
+        trajectory = JointTrajectory()
+        trajectory.points = [point]
+        trajectory.joint_names = ['head_1_joint', 'head_2_joint']
         return self.send_trajectory(traj=trajectory, feedback_cb=feedback_cb, done_cb=done_cb)
 
     def send_trajectory(self, traj, feedback_cb=None, done_cb=None):

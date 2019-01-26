@@ -29,9 +29,9 @@ def main():
 
     if command == 'off':
     	lights.off()
-
+            
     elif command == 'on':
-	lights.put_pixels(Lights.ON)    
+	lights.put_pixels(lights.ALL_ON)
 
     else:
         print_usage()

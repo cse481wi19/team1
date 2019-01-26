@@ -83,16 +83,22 @@ class Lights(object):
         """ set the LEDs to the values in pixels. 
             :param pixels: an array of 3-ary tuples
         """
-        self._last_pixels = pixels
+        self._last_pixels = list(pixels)
         msg = ChestLeds()
-        msg.red = pixels[0]
-        msg.green = pixels[1]
-        msg.blue = pixels[2]
-        self._light_pub.publish(msg)
+
+        for x in range(15):
+            msg.leds[x].red = int(self._last_pixels[x][0])
+            msg.leds[x].green = int(self._last_pixels[x][1])
+            msg.leds[x].blue = int(self._last_pixels[x][2])
+
+        start_time = rospy.Time.now()
+        while rospy.Time.now() - start_time < rospy.Duration(0.25):
+            self._light_pub.publish(msg)
+
 
     def get_pixels(self):
         return list(self._last_pixels)
 
     def off(self):
-        self.put_pixels(ChestLightClient.ALL_OFF)
+        self.put_pixels(Lights.ALL_OFF)
 # okay decompiling ./opt/gizmo-master-cbb8e0c/lib/python2.7/dist-packages/mobile_base/chest_light_client.pyc
