@@ -3,7 +3,9 @@ from actionlib_msgs.msg import GoalStatus
 from actionlib.action_client import CommState
 # TODO: What messages are we going to need?
 import rospy #, ???????_msgs.msg
-from control_msgs.msg import FollowJointTrajectoryActionGoal import FollowJointTrajectoryAction
+import control_msgs.msg
+from control_msgs.msg import FollowJointTrajectoryGoal, FollowJointTrajectoryAction
+from trajectory_msgs.msg import JointTrajectoryPoint, JointTrajectory
 """ 
 This is set up for Kuri, but you can take inspiration for Fetch if you like.
 """
@@ -29,7 +31,8 @@ class Head(object):
     HEAD_NS = '/head_controller/follow_joint_trajectory/goal' # found on real robot, previously thought to use /command
     EYES_NS = '/eyelids_controller/follow_joint_trajectory/goal'
 
-    def __init__(self, js, head_ns=None, eyes_ns=None):
+    # JS was set to none to try to get demo to work, probably shouldn't be
+    def __init__(self, js=None, head_ns=None, eyes_ns=None):
         self._js = js
         self._head_gh = None
         self._head_goal = None
@@ -71,6 +74,10 @@ class Head(object):
         # TODO: Build a JointTrajectoryPoint that expresses the target configuration
         # TODO: Put that point into the right container type, and target the 
         # correct joint.
+        point = JointTrajectoryPoint()
+        point.positions = [radians]
+        trajectory = JointTrajectory()
+        trajectory.points = [point]
         return self.send_trajectory(trajectory, feedback_cb=feedback_cb, done_cb=done_cb)
 
     def is_done(self):
@@ -129,7 +136,7 @@ class Head(object):
                 point.time_from_start = rospy.Duration(point.time_from_start)
 
         # TODO: What should be the type of the goal?
-        goal = control_msgs.msg.FollowJointTrajectoryActionGoal(trajectory=traj)
+        goal = control_msgs.msg.FollowJointTrajectoryGoal(trajectory=traj)
 
         def _handle_transition(gh):
             gh_goal = gh.comm_state_machine.action_goal.goal

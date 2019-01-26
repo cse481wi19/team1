@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 
 import rospy
+import robot_api
 
 
 def print_usage():
@@ -51,7 +52,9 @@ def main():
             print_usage()
             return
         angle = float(argv[2])
-        rospy.logerr('Not implemented.')
+        head = robot_api.Head()
+        head.eyes_to(angle)
+        # rospy.logerr('Not implemented.')
     else:
         print_usage()
 
