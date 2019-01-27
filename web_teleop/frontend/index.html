@@ -1,0 +1,38 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <script type="text/javascript" src="http://static.robotwebtools.org/EventEmitter2/current/eventemitter2.min.js"></script>
+    <script type="text/javascript" src="http://static.robotwebtools.org/roslibjs/current/roslib.min.js"></script>
+    <script type="text/javascript" src="js/robot.js"></script>
+    <script type="text/javascript" src="js/move.js"></script>
+    <script type="text/javascript" src="js/chest.js"></script>
+    <script type="text/javascript" src="js/head.js"></script>
+    <script type="text/javascript" src="js/eyelids.js"></script>
+    <link rel="stylesheet" type="text/css" href="css/index.css" />
+    <link href="https://fonts.googleapis.com/css?family=Pacifico|Roboto" rel="stylesheet">
+  </head>
+
+
+  <div id="header">
+    <div class="titleText">
+      <div class="luciTitle">Luci</div> - Basic Control Panel
+      <img src="static/kurirobot.png" class="kuriImg" />
+    </div>
+  </div>
+
+  <div id="camera">
+    <img src="http://shimada.cs.washington.edu:8000/stream?topic=/depthscan/depth_image"></img>
+  </div>
+  <div id="controls">
+    <button title="forward" onmousedown="startForward()" onmouseup="endMove()">Forward</button></br>
+    <button title="left" onmousedown="startLeft()" onmouseup="endMove()">Left</button>
+    <button title="right" onmousedown="startRight()" onmouseup="endMove()">Right</button></br>
+    <button title="backward" onmousedown="startBackward()" onmouseup="endMove()">Backward</button></br>
+
+    </br>Chest Color</br><input type="color" name="chestColor" value="#ff0000" onchange="setChestColor()"></br>
+    </br>Eyelid Height</br><input type="range" name="Eyelids" min="0" max="100" onchange="updateEyelids()"></br>
+
+    </br>Head Pan</br><input type="range" name="HeadPan" min="0" max="100" onchange="updateHeadPan()"></br>
+    </br>Head Tilt</br><input type="range" name="HeadTilt" min="0" max="100" onchange="updateHeadTilt()"></br>
+  </div>
+</html>
