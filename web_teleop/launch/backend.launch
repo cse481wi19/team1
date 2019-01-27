@@ -1,4 +1,8 @@
 <launch>
   <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch" />
-  <node pkg="web_teleop" type="actuators_node.py" name="web_teleop_actuators" />
+  <node pkg="web_teleop" type="head_node.py" name="web_teleop_head" />
+    <node pkg="web_teleop" type="eyelids_node.py" name="web_teleop_eyelids" />
+  <node pkg="web_video_server" type="web_video_server" name="web_video_server">
+    <param name="port" value="8000" />
+  </node>
 </launch>
