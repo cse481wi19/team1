@@ -20,11 +20,11 @@ var publishHead = function(pan, tilt) {
 }
 
 var updateHeadPan = function(evt) {
-    currentPan = event.target.value / 50 - 1
+    currentPan = (1 - event.target.value / 100) * 1.56 - .78
     publishHead(currentPan, currentTilt)
 }
 
 var updateHeadTilt = function(evt) {
-    currentTilt = event.target.value / 50 - 1
+    currentTilt = ((1 - event.target.value / 100) * 1.21)  - 0.92
     publishHead(currentPan, currentTilt)
 }

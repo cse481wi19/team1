@@ -16,5 +16,5 @@ var publishEyelids = function(radians) {
 }
 
 var updateEyelids = function(evt) {
-  publishEyelids(event.target.value / 100)
+  publishEyelids((event.target.value / 100) * .57 - .16)
 }

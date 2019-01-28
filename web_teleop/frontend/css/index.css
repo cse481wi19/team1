@@ -37,3 +37,9 @@ body {
     margin: auto;
     margin: 40px;
 }
+
+#camera {
+    text-align: center;
+    margin: auto;
+    display: inherit;
+}

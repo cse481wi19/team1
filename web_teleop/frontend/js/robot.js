@@ -24,3 +24,11 @@ ros.on('close', function() {
 
 // Create a connection to the rosbridge WebSocket server.
 ros.connect('ws://shimada.cs.washington.edu:9090');
+
+setSim = function() {
+    cmdVel = new ROSLIB.Topic({
+        ros : ros,
+        name : '/mobile_base_controller/cmd_vel',
+        messageType : 'geometry_msgs/Twist'
+    });
+}
