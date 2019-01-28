@@ -49,14 +49,12 @@ def main():
             return
         pan, tilt = float(argv[2]), float(argv[3])
         head.pan_and_tilt(pan, tilt)
-        # rospy.logerr('Not implemented.')
     elif command == 'eyes':
         if len(argv) < 3:
             print_usage()
             return
         angle = float(argv[2])
         head.eyes_to(angle)
-        # rospy.logerr('Not implemented.')
     else:
         print_usage()
 
