@@ -3,8 +3,10 @@ document.addEventListener("DOMContentLoaded", function(event) {
         divID : 'markers',
         width : document.body.clientWidth * .4,
         height : document.body.clientWidth * .4,
-        antialias : true
+        antialias : true,
+        background : "#f0f0ee"
     });
+    viewer.addObject(new ROS3D.Grid());
     
     var tfClient = new ROSLIB.TFClient({
         ros : ros,
@@ -21,4 +23,17 @@ document.addEventListener("DOMContentLoaded", function(event) {
         camera : viewer.camera,
         rootObject : viewer.selectableObjects
     });
+
+    var gridClient = new ROS3D.OccupancyGridClient({
+           ros : ros,
+           rootObject : viewer.scene
+    });
+
+    var urdfClient = new ROS3D.UrdfClient({
+       ros : ros,
+       tfClient : tfClient,
+       path : '/static/gizmo_description',
+       rootObject : viewer.scene,
+       loader : ROS3D.COLLADA_LOADER
+     });
  });
