@@ -35,7 +35,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
     var urdfClient = new ROS3D.UrdfClient({
        ros : ros,
        tfClient : tfClient,
-       path : '/static/',
+       path : 'static/',
        rootObject : viewer.scene,
      });
 
