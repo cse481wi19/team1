@@ -8,12 +8,13 @@ document.addEventListener("DOMContentLoaded", function(event) {
     });
     viewer.addObject(new ROS3D.Grid());
     
+    // TF Server
     var tfClient = new ROSLIB.TFClient({
         ros : ros,
         angularThres : 0.01,
         transThres : 0.01,
         rate : 10.0,
-        fixedFrame : '/rotating_frame'
+        fixedFrame : '/odom'
     });
     
     var imClient = new ROS3D.InteractiveMarkerClient({
@@ -24,16 +25,25 @@ document.addEventListener("DOMContentLoaded", function(event) {
         rootObject : viewer.selectableObjects
     });
 
+    // Add Grid
     var gridClient = new ROS3D.OccupancyGridClient({
            ros : ros,
            rootObject : viewer.scene
     });
 
+    // Robot Model
     var urdfClient = new ROS3D.UrdfClient({
        ros : ros,
        tfClient : tfClient,
-       path : '/static/gizmo_description',
+       path : '/static/',
        rootObject : viewer.scene,
-       loader : ROS3D.COLLADA_LOADER
      });
+
+    /*var odometryClient = new ROS3D.Odometry({
+        ros: ros,
+        topic: '/mobile_base_controller/odom',
+        tfClient: tfClient,
+        rootObject: viewer
+    });*/
+    
  });
