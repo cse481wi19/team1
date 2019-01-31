@@ -1,6 +1,8 @@
 #! /usr/bin/env python
 
 import rospy
+import math
+import tf.transformations as tfs
 from geometry_msgs.msg import Twist
 
 
@@ -19,8 +21,12 @@ class Base(object):
         # Prod: mobile_base/commands/velocity
         self.pub = rospy.Publisher('/mobile_base_controller/cmd_vel', Twist)
         # self.pub = rospy.Publisher('/mobile_base/commands/velocity', Twist)
+	# Create subscriber to odom
+	self._odom_sub = rospy.Subscriber('odom', nav_msgs.msg.Odometry, callback=self._odom_callback)
         pass
-
+    def _odom_callback(self, msg)
+	# TODO
+    
     def move(self, linear_speed, angular_speed):
         """Moves the base instantaneously at given linear and angular speeds.
 
@@ -55,3 +61,11 @@ class Base(object):
 
         self.pub.publish(msg)
         # rospy.logerr('Not implemented.')
+
+    def quaternion_to_yaw(q):
+	m = tft.quaternion_matrix([q.x, q.y, q.z, q.w])
+	x = m[0, 0]
+	y = m[1, 0]
+	theta_rads = math.atan2(y, x)
+	theta_degs = theta_rads * 180 / math.pi
+	return theta_degs
