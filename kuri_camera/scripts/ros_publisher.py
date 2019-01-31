@@ -26,7 +26,7 @@ def stream_cb(data):
     data = np.fromstring(data, np.uint8)
     decoded = cv2.imdecode(data, cv2.CV_LOAD_IMAGE_COLOR)
     #cv2.cvtColor(decoded, image, cv2.CV_RGB2)
-    image = bridge.cv2_to_imgmsg(decoded, "rgb8")
+    image = bridge.cv2_to_imgmsg(decoded, "bgr8")
     image_received.set()
 
 

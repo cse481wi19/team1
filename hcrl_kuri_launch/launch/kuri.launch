@@ -16,4 +16,6 @@
     <!-- Autonomous Navigation -->
     <include file="$(find hcrl_kuri_launch)/launch/may_nav.launch"/>
 
+
+    <node name="kuri_camera" pkg="kuri_camera" type="ros_publisher.py" />
 </launch>
