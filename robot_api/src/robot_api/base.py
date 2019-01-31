@@ -16,7 +16,7 @@ class Base(object):
         base.stop()
     """
 
-    LATEST_ODOM = null
+    LATEST_ODOM = None
     NO_MSG = True
 
     def __init__(self):
@@ -32,6 +32,7 @@ class Base(object):
     def _odom_callback(self, msg)
 	    NO_MSG = False
         LATEST_ODOM = msg
+        # TODO: use quaternion_to_yaw method some how? 
     
     def go_forward(self, distance, speed=0.1):
         """Moves the robot a certain distance.
@@ -46,6 +47,9 @@ class Base(object):
                 means forward, negative means backward.
             speed: The speed to travel, in meters/second.
         """
+
+        # TODO: should we be getting the current position instead of using a counter?
+
         # TODO: rospy.sleep until the base has received at least one message on /odom
         while NO_MSG:
             rospy.sleep(0.025)
@@ -61,7 +65,7 @@ class Base(object):
             # TODO: you will probably need to do some math in this loop to check the CONDITION
             direction = -1 if distance < 0 else 1
             self.move(direction * speed, 0)
-            absDistance -= direction * speed
+            absDistance = absDistance - speed
             rate.sleep()
 
     def turn(self, angular_distance, speed=0.5):
@@ -72,17 +76,31 @@ class Base(object):
                 value rotates counter-clockwise.
             speed: The angular speed to rotate, in radians/second.
         """
+
+        # TODO: should we use curr pos instead of counter
+
         # TODO: rospy.sleep until the base has received at least one message on /odom
+        while NO_MSG:
+            rospy.sleep(0.025)
+
         # TODO: record start position, use Python's copy.deepcopy
         start = copy.deepcopy(LATEST_ODOM)
+
         # TODO: What will you do if angular_distance is greater than 2*pi or less than -2*pi?
+        angular_distance = angular_distance % (2*math.pi)
+
         rate = rospy.Rate(10)
+
         # TODO: CONDITION should check if the robot has rotated the desired amount
         # TODO: Be sure to handle the case where the desired amount is negative!
-        while CONDITION:
+
+        absAngle = abs(angular_distance)
+
+        while absAngle > 0:
             # TODO: you will probably need to do some math in this loop to check the CONDITION
             direction = -1 if angular_distance < 0 else 1
             self.move(0, direction * speed)
+            absAngle = absAngle - speed
             rate.sleep()
 
     def move(self, linear_speed, angular_speed):
@@ -121,9 +139,9 @@ class Base(object):
         # rospy.logerr('Not implemented.')
 
     def quaternion_to_yaw(q):
-	m = tft.quaternion_matrix([q.x, q.y, q.z, q.w])
-	x = m[0, 0]
-	y = m[1, 0]
-	theta_rads = math.atan2(y, x)
-	theta_degs = theta_rads * 180 / math.pi
-	return theta_degs
+        m = tft.quaternion_matrix([q.x, q.y, q.z, q.w])
+        x = m[0, 0]
+        y = m[1, 0]
+        theta_rads = math.atan2(y, x)
+        theta_degs = theta_rads * 180 / math.pi
+        return theta_degs
