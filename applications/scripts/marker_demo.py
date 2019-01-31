@@ -9,15 +9,17 @@ import rospy
 
 class NavPath(object):
 	def __init__(self):
-		initPose = Pose(Point(0, 0, 0), Quaternion(0,0,0,1))
-		self._path = [initPose]
+		# TODO: Should be Luci's starting point not 0,0,0
+		initPoint = Point(0, 0, 0)
+		self._path = [initPoint]
             
 	def _computeDistance(self, msg):
-		oldLoc = self._path[0].position
+		oldLoc = self._path[-1]
 		# TODO: Generalize line to oldLoc = self._path[-1]
 		currLoc = msg.pose.pose.position
-		if (abs(currLoc.x - oldLoc.x) > 1 or (abs(currLoc.y - oldLoc.y) > 1 or abs(currLoc.z - oldLoc.z) > 1)):
-			self._path[0] = msg.pose.pose
+		currPoint = Point(currLoc.x, currLoc.y, currLoc.z)
+		if (abs(currLoc.x - oldLoc.x) > 0.1 or (abs(currLoc.y - oldLoc.y) > 0.1 or abs(currLoc.z - oldLoc.z) > 0.1)):
+			self._path.append(currPoint)
 			return True
 		return False
 
@@ -26,8 +28,8 @@ class NavPath(object):
 		hasMovedAway = self._computeDistance(msg)
 		if hasMovedAway: # TODO Replace condition
 			# self._path.append(msg.pose.pose.position) # TODO Uncomment and build up list
-			show_text_in_rviz(marker_publisher, 'HELLO!')
-			# draw_path_in_rviz(marker_publisher, msg.pose.pose)
+			# show_text_in_rviz(marker_publisher, 'HELLO!')
+			draw_path_in_rviz(marker_publisher, self._path)
 		
 def wait_for_time():                                              
     """Wait for simulated time to begin.                          
@@ -35,21 +37,23 @@ def wait_for_time():
     while rospy.Time().now().to_sec() == 0:                       
         pass
 
-def draw_path_in_rviz(marker_publisher, pose):
+def draw_path_in_rviz(marker_publisher, points):
     marker = Marker(
                 type=Marker.LINE_STRIP, 
                 id=0,
-                lifetime=rospy.Duration(3),
-                pose=pose,
-                scale=Vector3(0.6, 0.6, 0.6),
+                lifetime=rospy.Duration(60),
+				points=points,
+                # pose=pose,
+				pose=Pose(Point(0.5, 0.5, 0.45), Quaternion(0, 0, 0, 1)),
+                scale=Vector3(0.01, 0, 0),
                 header=Header(frame_id='base_link'),
-                color=ColorRGBA(1.0, 1.0, 0.5, 0.8),
+                color=ColorRGBA(0.0, 1.0, 0.0, 0.8),
                 )
     marker_publisher.publish(marker)
 
 def show_text_in_rviz(marker_publisher, text):
     marker = Marker(
-                type=Marker.TEXT_VIEW_FACING, # TODO Change to Marker.LINE_STRIP
+                type=Marker.TEXT_VIEW_FACING,
                 id=0,
                 lifetime=rospy.Duration(3),
                 pose=Pose(Point(0.5, 0.5, 0.45), Quaternion(0, 0, 0, 1)),
