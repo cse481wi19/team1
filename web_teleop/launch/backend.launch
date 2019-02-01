@@ -1,6 +1,5 @@
 <launch>
   <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch" />
-  <node pkg="map_annotator" type="server.py" name="map_annotator_server" args="$(env HOME)/our_pose_db_name.db"/>
   <node pkg="web_teleop" type="head_node.py" name="web_teleop_head" />
   <node pkg="web_teleop" type="eyelids_node.py" name="web_teleop_eyelids" />
   <node pkg="web_teleop" type="pose_node.py" name="web_teleop_pose" />

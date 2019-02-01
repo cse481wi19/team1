@@ -32,7 +32,7 @@ class PosesServer(object):
         return response
 
 def main():
-    rospy.init_node('web_teleop_eyelids')
+    rospy.init_node('web_teleop_pose')
     wait_for_time()
     posesServer = PosesServer()
     list_poses_service = rospy.Service('web_teleop/list_poses', ListPoses,
