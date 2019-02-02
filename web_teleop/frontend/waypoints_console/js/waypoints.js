@@ -1,3 +1,2 @@
 setupWaypoints = function() {
-    
 }

@@ -30,8 +30,8 @@ document.addEventListener("DOMContentLoaded", function(event) {
     // Scene
     scene.viewer = new ROS3D.Viewer({
         divID : 'markers',
-        width : document.body.clientWidth * .4,
-        height : document.body.clientWidth * .4,
+        width : document.body.clientWidth * .75,
+        height : document.body.clientWidth * .75,
         antialias : true,
         background : "#f0f0ee"
     });
@@ -40,7 +40,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
     scene.viewer.addObject(new ROS3D.Grid());
     
     // TF Server
-    scene.tfClient = new ROSLIB.TFClient({
+    scene.robotTFClient = new ROSLIB.TFClient({
         ros : ros,
         angularThres : 0.01,
         transThres : 0.01,
@@ -48,16 +48,32 @@ document.addEventListener("DOMContentLoaded", function(event) {
         fixedFrame : '/odom'
     });
 
+    // TF Server
+    scene.baseTFClient = new ROSLIB.TFClient({
+        ros : ros,
+        angularThres : 0.01,
+        transThres : 0.01,
+        rate : 10.0,
+        fixedFrame : '/base_link'
+    });
+
     // Robot Model
     scene.urdfClient = new ROS3D.UrdfClient({
        ros : ros,
-       tfClient : scene.tfClient,
+       tfClient : scene.robotTFClient,
        path : 'static/',
        rootObject : scene.viewer.scene,
      });
 
-     setupWaypoints()
- });
+     // IMarkers
+     var imClient = new ROS3D.InteractiveMarkerClient({
+        ros : ros,
+        tfClient : scene.baseTFClient,
+        topic : '/map_annotator_ims',
+        camera : scene.viewer.camera,
+        rootObject : scene.viewer.selectableObjects
+      });
+});
 
  setupWaypoints = function() {
      
