@@ -81,7 +81,7 @@ def wait_for_time():
     while rospy.Time().now().to_sec() == 0:
         pass
 
-class PosesServer(object):
+class markersServer(object):
     ## Initialization
     def __init__(self):
         self.server = InteractiveMarkerServer("map_annotator_ims")
@@ -92,7 +92,7 @@ class PosesServer(object):
         self.createMarker("Test Marker")
 
     ## Services
-    def handle_manage_pose(self, request):
+    def handle_manage_marker(self, request):
         response = ManageMarkerResponse()
         response.message = "ERROR_INVALID_CMD"
         if request.cmd.lower() == 'create':
@@ -117,9 +117,9 @@ class PosesServer(object):
                 response.message = "ERROR_MARKER_DOES_NOT_EXIST"
         return response
 
-    def handle_list_poses(self, request):
+    def handle_list_markers(self, request):
         response = ListMarkersResponse()
-        response.poses = self.markers
+        response.markers = self.markers
         return response 
 
     ## Marker Support Code
@@ -144,25 +144,32 @@ class PosesServer(object):
 
     def renameMarker(self, oldname, newname):
         if not oldname in self.markers: return False
+
+        # Get marker obj from server
         marker = self.server.get(oldname)
+
+        # Delete marker
+        self.deleteMarker(oldname)
+
+        # Add new marker
         marker.name = newname
         marker.controls[0].markers[1].text = newname
-        self.server.erase(oldname)
-        self.server.applyChanges()
         self.server.insert(marker, processFeedback)
         self.server.applyChanges()
+        self.markers.append(newname)
+
         return True
 
 if __name__=="__main__":
     rospy.init_node("map_annotator_ims")
 
-    # Start Pose Service / Server
+    # Start Marker Service / Server
     wait_for_time()
-    posesServer = PosesServer()
-    list_poses_service = rospy.Service('map_annotator/list_markers', ListMarkers,
-                                  posesServer.handle_list_poses)
-    manage_poses_service = rospy.Service('map_annotator/manage_marker', ManageMarker,
-                                  posesServer.handle_manage_pose)
+    markersServer = markersServer()
+    list_markers_service = rospy.Service('map_annotator/list_markers', ListMarkers,
+                                  markersServer.handle_list_markers)
+    manage_markers_service = rospy.Service('map_annotator/manage_marker', ManageMarker,
+                                  markersServer.handle_manage_marker)
 
     rospy.spin()
 
