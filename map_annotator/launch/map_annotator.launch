@@ -1,0 +1,3 @@
+<launch>
+  <node pkg="map_annotator" type="map_annotator_ims.py" name="map_annotator_im_server" />
+</launch>
