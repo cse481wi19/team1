@@ -30,8 +30,8 @@ document.addEventListener("DOMContentLoaded", function(event) {
     // Scene
     scene.viewer = new ROS3D.Viewer({
         divID : 'markers',
-        width : document.body.clientWidth * .75,
-        height : document.body.clientWidth * .75,
+        width : document.body.clientHeight * .75,
+        height : document.body.clientHeight * .75,
         antialias : true,
         background : "#f0f0ee"
     });

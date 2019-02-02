@@ -14,6 +14,23 @@ document.addEventListener("DOMContentLoaded", function(event) {
     });
 })
 
+var createMarker = function(name) {
+    clients.manageMarker.callService(
+    new ROSLIB.ServiceRequest({
+        cmd : "create",
+        markerName: name,
+        newMarkerName: ""
+    }),
+    function(result) {
+        console.log(result)
+    });
+}
+
+var createMarkerUI = function(evt) {
+    createMarker(event.target[0].value)
+    event.target[0].value = ""
+}
+
 var deleteMarker = function(name) {
     clients.manageMarker.callService(
     new ROSLIB.ServiceRequest({
@@ -26,14 +43,7 @@ var deleteMarker = function(name) {
     });
 }
 
-var createMarker = function(name) {
-    clients.manageMarker.callService(
-    new ROSLIB.ServiceRequest({
-        cmd : "create",
-        markerName: name,
-        newMarkerName: ""
-    }),
-    function(result) {
-        console.log(result)
-    });
+var deleteMarkerUI = function(evt) {
+    deleteMarker(event.target[0].value)
+    event.target[0].value = ""
 }
