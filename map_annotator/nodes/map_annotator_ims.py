@@ -105,8 +105,11 @@ class PosesServer(object):
                 response.message = "SUCCESS_DELETE"
             else:
                 response.message = "ERROR_MARKER_DOES_NOT_EXIST"
-        elif request.cmd.lower() == 'go':
-            response.message = "ERROR_NOT_IMPLEMENTED"
+        elif request.cmd.lower() == 'goto':
+            if (self.gotoMarker(request.markerName)):
+                response.message = "SUCCESS_GOTO"
+            else:
+                response.message = "ERROR_MARKER_DOES_NOT_EXIST"
         elif request.cmd.lower() == 'rename':
             if (self.renameMarker(request.markerName, request.newMarkerName)):
                 response.message = "SUCCESS_RENAME"
@@ -134,10 +137,16 @@ class PosesServer(object):
         self.markers.remove(name)
         return ret
 
+    def gotoMarker(self, name):
+        if not name in self.markers: return False
+        # TODO: implement this
+        return True
+
     def renameMarker(self, oldname, newname):
         if not oldname in self.markers: return False
         marker = self.server.get(oldname)
         marker.name = newname
+        marker.controls[0].markers[1].text = newname
         self.server.erase(oldname)
         self.server.applyChanges()
         self.server.insert(marker, processFeedback)
