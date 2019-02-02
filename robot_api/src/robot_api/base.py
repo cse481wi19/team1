@@ -2,8 +2,11 @@
 
 import rospy
 import math
-import tf.transformations as tfs
+import copy
+import rospy.rostime
+import tf.transformations as tft
 from geometry_msgs.msg import Twist
+import nav_msgs.msg._Odometry
 
 
 class Base(object):
@@ -17,21 +20,25 @@ class Base(object):
     """
 
     LATEST_ODOM = None
+    LATEST_POS = None
+    LATEST_RAD = None
     NO_MSG = True
 
     def __init__(self):
         # Create publisher
         # Prod: mobile_base/commands/velocity
-        self.pub = rospy.Publisher('/mobile_base_controller/cmd_vel', Twist)
-        # self.pub = rospy.Publisher('/mobile_base/commands/velocity', Twist)
+        self.pub = rospy.Publisher('/mobile_base_controller/cmd_vel', Twist, queue_size=10)
+        # self.pub = rospy.Publisher('/mobile_base/commands/velocity', Twist, queue_size=10)
 
         # Create subscriber to odom
         self._odom_sub = rospy.Subscriber('odom', nav_msgs.msg.Odometry, callback=self._odom_callback)
         pass
 
-    def _odom_callback(self, msg)
-	    NO_MSG = False
-        LATEST_ODOM = msg
+    def _odom_callback(self, msg):
+        self.NO_MSG = False
+        self.LATEST_ODOM = msg
+        self.LATEST_RAD = self.q_to_yaw(msg.pose.pose.orientation)
+        self.LATEST_POS = msg.pose.pose.position
         # TODO: use quaternion_to_yaw method some how? 
     
     def go_forward(self, distance, speed=0.1):
@@ -51,21 +58,22 @@ class Base(object):
         # TODO: should we be getting the current position instead of using a counter?
 
         # TODO: rospy.sleep until the base has received at least one message on /odom
-        while NO_MSG:
+        while self.NO_MSG:
             rospy.sleep(0.025)
 
         # TODO: record start position, use Python's copy.deepcopy
-        start = copy.deepcopy(LATEST_ODOM)
-
+        start = copy.deepcopy(self.LATEST_ODOM)
+        START_POS = start.pose.pose.position
         rate = rospy.Rate(10)
         # TODO: CONDITION should check if the robot has traveled the desired distance
         absDistance = abs(distance)
         # TODO: Be sure to handle the case where the distance is negative!
+        # TODO: Change from using prev time to useing info from odom message
         while absDistance > 0:
             # TODO: you will probably need to do some math in this loop to check the CONDITION
             direction = -1 if distance < 0 else 1
             self.move(direction * speed, 0)
-            absDistance = absDistance - speed
+            absDistance = abs(distance) - math.sqrt(((self.LATEST_POS.x - START_POS.x) ** 2)+((self.LATEST_POS.y - START_POS.y) ** 2))
             rate.sleep()
 
     def turn(self, angular_distance, speed=0.5):
@@ -80,27 +88,48 @@ class Base(object):
         # TODO: should we use curr pos instead of counter
 
         # TODO: rospy.sleep until the base has received at least one message on /odom
-        while NO_MSG:
+        while self.NO_MSG:
             rospy.sleep(0.025)
 
         # TODO: record start position, use Python's copy.deepcopy
-        start = copy.deepcopy(LATEST_ODOM)
+        start = copy.deepcopy(self.LATEST_ODOM)
+        START_RAD = self.q_to_yaw(start.pose.pose.orientation)
+        if(START_RAD < 0):
+            START_RAD = START_RAD % (2 * math.pi)
 
         # TODO: What will you do if angular_distance is greater than 2*pi or less than -2*pi?
-        angular_distance = angular_distance % (2*math.pi)
+        # angular_distance = angular_distance % (2*math.pi)
 
         rate = rospy.Rate(10)
 
         # TODO: CONDITION should check if the robot has rotated the desired amount
         # TODO: Be sure to handle the case where the desired amount is negative!
 
-        absAngle = abs(angular_distance)
-
+        absAngle = abs(angular_distance) % (2*math.pi)
+        # TODO: Change from using prev time to useing info from odom message
         while absAngle > 0:
             # TODO: you will probably need to do some math in this loop to check the CONDITION
             direction = -1 if angular_distance < 0 else 1
             self.move(0, direction * speed)
-            absAngle = absAngle - speed
+            LAST_RAD = self.LATEST_RAD
+            if(LAST_RAD < 0):
+                LAST_RAD = LAST_RAD % (2 * math.pi)
+            if(direction > 0):
+                if(START_RAD - 0.000001 <= LAST_RAD):
+                    rospy.loginfo("1 absAngle = %f, START_RAD = %f, LATEST_RAD = %f", absAngle, START_RAD, LAST_RAD)
+                    absAngle -= (LAST_RAD - START_RAD)
+                else:
+                    rospy.loginfo("2 absAngle = %f, START_RAD = %f, LATEST_RAD = %f", absAngle, START_RAD, LAST_RAD)
+                    absAngle -= (math.pi * 2) + (LAST_RAD - START_RAD)
+            else:
+                if(START_RAD + 0.000001 <= LAST_RAD):
+                    rospy.loginfo("3 absAngle = %f, START_RAD = %f, LATEST_RAD = %f", absAngle, START_RAD, LAST_RAD)
+                    absAngle -= (math.pi * 2) - (LAST_RAD - START_RAD)
+                else:
+                    rospy.loginfo("4 absAngle = %f, START_RAD = %f, LATEST_RAD = %f", absAngle, START_RAD, LAST_RAD)
+                    absAngle -= (START_RAD - LAST_RAD)
+            rospy.loginfo(absAngle)
+            START_RAD = LAST_RAD
             rate.sleep()
 
     def move(self, linear_speed, angular_speed):
@@ -138,10 +167,10 @@ class Base(object):
         self.pub.publish(msg)
         # rospy.logerr('Not implemented.')
 
-    def quaternion_to_yaw(q):
+    def q_to_yaw(self, q):
         m = tft.quaternion_matrix([q.x, q.y, q.z, q.w])
         x = m[0, 0]
         y = m[1, 0]
         theta_rads = math.atan2(y, x)
         theta_degs = theta_rads * 180 / math.pi
-        return theta_degs
+        return theta_rads
