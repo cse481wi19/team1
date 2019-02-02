@@ -7,7 +7,6 @@
   <!-- Robot Control -->
   <node pkg="web_teleop" type="head_node.py" name="web_teleop_head" />
   <node pkg="web_teleop" type="eyelids_node.py" name="web_teleop_eyelids" />
-  <node pkg="web_teleop" type="pose_node.py" name="web_teleop_pose" />
 
   <!-- Vision -->
   <node pkg="web_video_server" type="web_video_server" name="web_video_server">

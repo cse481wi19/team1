@@ -74,7 +74,3 @@ document.addEventListener("DOMContentLoaded", function(event) {
         rootObject : scene.viewer.selectableObjects
       });
 });
-
- setupWaypoints = function() {
-     
- }

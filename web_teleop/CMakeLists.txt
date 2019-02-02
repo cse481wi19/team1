@@ -58,8 +58,6 @@ add_service_files(
    FILES
    SetEyelids.srv
    SetHead.srv
-   ManagePose.srv
-   ListPoses.srv
  )
 
 ## Generate actions in the 'action' folder

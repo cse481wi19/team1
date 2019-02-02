@@ -1,2 +1,0 @@
-setupWaypoints = function() {
-}
