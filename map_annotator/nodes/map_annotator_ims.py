@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 import rospy
+import pickle
+import os.path
 
 from interactive_markers.interactive_marker_server import *
 from visualization_msgs.msg import *
@@ -81,22 +83,35 @@ def wait_for_time():
     while rospy.Time().now().to_sec() == 0:
         pass
 
-class markersServer(object):
+class MarkersServer(object):
     ## Initialization
     def __init__(self):
+        # Init Server
         self.server = InteractiveMarkerServer("map_annotator_ims")
         self.markers = []
-        self.load_markers_from_file("")
 
     def load_markers_from_file(self, path):
-        self.createMarker("Test Marker")
+        if not os.path.isfile(path): return False
+        file_in = open(path, "rb")
+        markers = pickle.load(file_in)
+        for marker in markers:
+            self.addMarker(marker)
+        return True
+
+    def save_markers_to_file(self, path):
+        markers = []
+        for name in self.markers:
+            markers.append(self.server.get(name))
+        file_out = open(path, "wb")
+        pickle.dump(markers, file_out)
+        file_out.close()
 
     ## Services
     def handle_manage_marker(self, request):
         response = ManageMarkerResponse()
         response.message = "ERROR_INVALID_CMD"
         if request.cmd.lower() == 'create':
-            if (self.createMarker(request.markerName)):
+            if (self.createAndAddMarker(request.markerName)):
                 response.message = "SUCCESS_CREATE"
             else:
                 response.message = "ERROR_MARKER_EXISTS"
@@ -123,11 +138,18 @@ class markersServer(object):
         return response 
 
     ## Marker Support Code
-    def createMarker(self, name):
+    def createAndAddMarker(self, name):
         if name in self.markers: return False
         self.server.insert(makeMarker(name), processFeedback)
         self.server.applyChanges()
         self.markers.append(name)
+        return True
+
+    def addMarker(self, marker):
+        if marker.name in self.markers: return False
+        self.server.insert(marker, processFeedback)
+        self.server.applyChanges()
+        self.markers.append(marker.name)
         return True
 
     def deleteMarker(self, name):
@@ -154,22 +176,26 @@ class markersServer(object):
         # Add new marker
         marker.name = newname
         marker.controls[0].markers[1].text = newname
-        self.server.insert(marker, processFeedback)
-        self.server.applyChanges()
-        self.markers.append(newname)
+        self.addMarker(marker)
 
         return True
 
 if __name__=="__main__":
     rospy.init_node("map_annotator_ims")
 
+    markerSavePath = "saved_markers.db"
+
     # Start Marker Service / Server
     wait_for_time()
-    markersServer = markersServer()
+    markersServer = MarkersServer()
+    markersServer.load_markers_from_file(markerSavePath)
     list_markers_service = rospy.Service('map_annotator/list_markers', ListMarkers,
                                   markersServer.handle_list_markers)
     manage_markers_service = rospy.Service('map_annotator/manage_marker', ManageMarker,
                                   markersServer.handle_manage_marker)
 
     rospy.spin()
+
+    # Save markers to file
+    markersServer.save_markers_to_file(markerSavePath)
 
