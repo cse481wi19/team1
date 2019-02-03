@@ -69,7 +69,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
      var imClient = new ROS3D.InteractiveMarkerClient({
         ros : ros,
         tfClient : scene.baseTFClient,
-        topic : '/map_annotator_ims',
+        topic : '/map_annotator',
         camera : scene.viewer.camera,
         rootObject : scene.viewer.selectableObjects
       });

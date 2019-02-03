@@ -1,10 +1,10 @@
 clients = {}
 
 document.addEventListener("DOMContentLoaded", function(event) {
-    clients.listMarkers = new ROSLIB.Service({
+    clients.markerList = new ROSLIB.Topic({
         ros : ros,
-        name : '/map_annotator/list_markers',
-        serviceType : '/map_annotator/list_markers'
+        name : '/map_annotator/marker_list',
+        messageType : 'map_annotator/Markers'
     });
     
     clients.manageMarker = new ROSLIB.Service({
@@ -12,6 +12,15 @@ document.addEventListener("DOMContentLoaded", function(event) {
         name : '/map_annotator/manage_marker',
         serviceType : '/map_annotator/manage_marker'
     });
+
+    clients.markerList.subscribe(function(message) {
+        content = "Current Markers: </br>"
+        message.markers.forEach(function(name) {
+            content += name + "</br>"
+        })
+
+        document.getElementById("markerList").innerHTML = content
+    })
 })
 
 var createMarker = function(name) {
