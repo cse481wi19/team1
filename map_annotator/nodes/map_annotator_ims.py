@@ -5,8 +5,8 @@ import os.path
 
 from interactive_markers.interactive_marker_server import *
 from visualization_msgs.msg import *
-from map_annotator.srv import ListMarkers, ListMarkersResponse
 from map_annotator.srv import ManageMarker, ManageMarkerResponse
+from map_annotator.msg import Markers
 
 def processFeedback(feedback):
     s = "Feedback from marker '" + feedback.marker_name
@@ -87,7 +87,8 @@ class MarkersServer(object):
     ## Initialization
     def __init__(self):
         # Init Server
-        self.server = InteractiveMarkerServer("map_annotator_ims")
+        self.server = InteractiveMarkerServer("map_annotator")
+        self.pub = rospy.Publisher('map_annotator/marker_list', Markers, queue_size=10, latch=True)
         self.markers = []
 
     def load_markers_from_file(self, path):
@@ -132,17 +133,13 @@ class MarkersServer(object):
                 response.message = "ERROR_MARKER_DOES_NOT_EXIST"
         return response
 
-    def handle_list_markers(self, request):
-        response = ListMarkersResponse()
-        response.markers = self.markers
-        return response 
-
     ## Marker Support Code
     def createAndAddMarker(self, name):
         if name in self.markers: return False
         self.server.insert(makeMarker(name), processFeedback)
         self.server.applyChanges()
         self.markers.append(name)
+        self.pub.publish(self.markers)
         return True
 
     def addMarker(self, marker):
@@ -150,6 +147,7 @@ class MarkersServer(object):
         self.server.insert(marker, processFeedback)
         self.server.applyChanges()
         self.markers.append(marker.name)
+        self.pub.publish(self.markers)
         return True
 
     def deleteMarker(self, name):
@@ -157,6 +155,7 @@ class MarkersServer(object):
         ret = self.server.erase(name)
         self.server.applyChanges()
         self.markers.remove(name)
+        self.pub.publish(self.markers)
         return ret
 
     def gotoMarker(self, name):
@@ -181,7 +180,7 @@ class MarkersServer(object):
         return True
 
 if __name__=="__main__":
-    rospy.init_node("map_annotator_ims")
+    rospy.init_node("map_annotator")
 
     markerSavePath = "saved_markers.db"
 
@@ -189,8 +188,6 @@ if __name__=="__main__":
     wait_for_time()
     markersServer = MarkersServer()
     markersServer.load_markers_from_file(markerSavePath)
-    list_markers_service = rospy.Service('map_annotator/list_markers', ListMarkers,
-                                  markersServer.handle_list_markers)
     manage_markers_service = rospy.Service('map_annotator/manage_marker', ManageMarker,
                                   markersServer.handle_manage_marker)
 

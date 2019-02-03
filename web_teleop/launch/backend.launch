@@ -15,6 +15,6 @@
 
     <!-- Interactive Markers -->
   <include file="$(find map_annotator)/launch/map_annotator.launch" />
-  <node pkg="interactive_marker_proxy" type="proxy" name="interactive_marker_proxy" args="topic_ns:=/map_annotator_ims target_frame:=/base_link">
+  <node pkg="interactive_marker_proxy" type="proxy" name="interactive_marker_proxy" args="topic_ns:=/map_annotator target_frame:=/base_link">
   </node>
 </launch>
