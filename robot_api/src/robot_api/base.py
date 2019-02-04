@@ -116,17 +116,17 @@ class Base(object):
                 LAST_RAD = LAST_RAD % (2 * math.pi)
             if(direction > 0):
                 if(START_RAD - 0.000001 <= LAST_RAD):
-                    rospy.loginfo("1 absAngle = %f, START_RAD = %f, LATEST_RAD = %f", absAngle, START_RAD, LAST_RAD)
+                    # rospy.loginfo("1 absAngle = %f, START_RAD = %f, LATEST_RAD = %f", absAngle, START_RAD, LAST_RAD)
                     absAngle -= (LAST_RAD - START_RAD)
                 else:
-                    rospy.loginfo("2 absAngle = %f, START_RAD = %f, LATEST_RAD = %f", absAngle, START_RAD, LAST_RAD)
+                    # rospy.loginfo("2 absAngle = %f, START_RAD = %f, LATEST_RAD = %f", absAngle, START_RAD, LAST_RAD)
                     absAngle -= (math.pi * 2) + (LAST_RAD - START_RAD)
             else:
                 if(START_RAD + 0.000001 <= LAST_RAD):
-                    rospy.loginfo("3 absAngle = %f, START_RAD = %f, LATEST_RAD = %f", absAngle, START_RAD, LAST_RAD)
+                    # rospy.loginfo("3 absAngle = %f, START_RAD = %f, LATEST_RAD = %f", absAngle, START_RAD, LAST_RAD)
                     absAngle -= (math.pi * 2) - (LAST_RAD - START_RAD)
                 else:
-                    rospy.loginfo("4 absAngle = %f, START_RAD = %f, LATEST_RAD = %f", absAngle, START_RAD, LAST_RAD)
+                    # rospy.loginfo("4 absAngle = %f, START_RAD = %f, LATEST_RAD = %f", absAngle, START_RAD, LAST_RAD)
                     absAngle -= (START_RAD - LAST_RAD)
             rospy.loginfo(absAngle)
             START_RAD = LAST_RAD

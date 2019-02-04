@@ -2,7 +2,9 @@
 import rospy
 import pickle
 import os.path
-
+import robot_api #Travis added this
+import math # Travis added this
+import nav_msgs.msg._Odometry
 from interactive_markers.interactive_marker_server import *
 from visualization_msgs.msg import *
 from map_annotator.srv import ManageMarker, ManageMarkerResponse
@@ -90,6 +92,15 @@ class MarkersServer(object):
         self.server = InteractiveMarkerServer("map_annotator")
         self.pub = rospy.Publisher('map_annotator/marker_list', Markers, queue_size=10, latch=True)
         self.markers = []
+        # Travis added
+        self._odom_sub = rospy.Subscriber('odom', nav_msgs.msg.Odometry, callback=self._odom_callback)
+        self.base = robot_api.Base()
+        self.LATEST_ODOM = None
+        # end of Travis added
+
+    # Travis added this function
+    def _odom_callback(self, msg):
+        self.LATEST_ODOM = msg
 
     def load_markers_from_file(self, path):
         if not os.path.isfile(path): return False
@@ -160,7 +171,25 @@ class MarkersServer(object):
 
     def gotoMarker(self, name):
         if not name in self.markers: return False
+        while (self.LATEST_ODOM is None):
+            rospy.sleep(2.0)
         # TODO: implement this
+        # Get the latest orientation in radians
+        pose = self.LATEST_ODOM.pose.pose
+        LAST_RAD = self.base.q_to_yaw(pose.orientation) % (2 * math.pi)
+        # get the latest position
+        LAST_POS = pose.position
+	    # get the markers orientation in radians
+        MARK_POS = self.server.get(name).pose
+        MARK_RAD = (self.base.q_to_yaw(MARK_POS.orientation)) % (2 * math.pi)
+        MARK_x = MARK_POS.position.x
+        MARK_y = MARK_POS.position.y
+        MARK_z = MARK_POS.position.z
+        self.base.turn(LAST_RAD * -1)
+        dist = math.sqrt(((MARK_x - LAST_POS.x) ** 2)+((MARK_y - LAST_POS.y) ** 2) +  ((MARK_z - LAST_POS.z) ** 2))
+        self.base.go_forward(MARK_x - LAST_POS.x)
+        self.base.turn(math.pi / 2)
+        self.base.go_forward(MARK_y - LAST_POS.y)
         return True
 
     def renameMarker(self, oldname, newname):
@@ -195,4 +224,3 @@ if __name__=="__main__":
 
     # Save markers to file
     markersServer.save_markers_to_file(markerSavePath)
-
