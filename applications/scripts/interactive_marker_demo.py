@@ -10,16 +10,13 @@ from nav_msgs.msg import Odometry
 import rospy
 
 def handle_viz_input(input):
-	print('Callback triggered')
 	if (input.event_type == InteractiveMarkerFeedback.BUTTON_CLICK):
-		print('Logging')
 		rospy.loginfo(input.marker_name + ' was clicked.')
 	else:
 		rospy.loginfo('Cannot handle this InteractiveMarker event')
 
 def main():
 	rospy.init_node('interactive_marker_demo')
-	print('Got here')
 	server = InteractiveMarkerServer("simple_marker")
 
 	int_marker = InteractiveMarker()
@@ -48,7 +45,6 @@ def main():
 
 	server.insert(int_marker, handle_viz_input)
 	server.applyChanges()
-	print('Got to the end')
 	rospy.spin()
 
 if __name__ == '__main__':
