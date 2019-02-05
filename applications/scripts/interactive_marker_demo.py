@@ -8,12 +8,16 @@ from std_msgs.msg import Header, ColorRGBA
 from nav_msgs.msg import Odometry
 
 import rospy
+import robot_api
 
-def handle_viz_input(input):
+def handle_viz_input_forward(input):
 	print('Callback triggered')
 	if (input.event_type == InteractiveMarkerFeedback.BUTTON_CLICK):
-		print('Logging')
-		rospy.loginfo(input.marker_name + ' was clicked.')
+		# print('Logging')
+		# rospy.loginfo(input.marker_name + ' was clicked.')
+
+		# TODO saho: move the robot forward when this is clicked
+		base.go_forward(0.5)
 	else:
 		rospy.loginfo('Cannot handle this InteractiveMarker event')
 
@@ -46,7 +50,7 @@ def main():
 	button_control.markers.append(box_marker)
 	int_marker.controls.append(button_control)
 
-	server.insert(int_marker, handle_viz_input)
+	server.insert(int_marker, handle_viz_input_forward)
 	server.applyChanges()
 	print('Got to the end')
 	rospy.spin()

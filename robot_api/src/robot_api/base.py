@@ -55,22 +55,19 @@ class Base(object):
             speed: The speed to travel, in meters/second.
         """
 
-        # TODO: should we be getting the current position instead of using a counter?
-
-        # TODO: rospy.sleep until the base has received at least one message on /odom
+        # rospy.sleep until the base has received at least one message on /odom
         while self.NO_MSG:
             rospy.sleep(0.025)
 
-        # TODO: record start position, use Python's copy.deepcopy
+        # Record start position, use Python's copy.deepcopy
         start = copy.deepcopy(self.LATEST_ODOM)
         START_POS = start.pose.pose.position
         rate = rospy.Rate(10)
-        # TODO: CONDITION should check if the robot has traveled the desired distance
+
+        # Check if the robot has traveled the desired distance
         absDistance = abs(distance)
-        # TODO: Be sure to handle the case where the distance is negative!
-        # TODO: Change from using prev time to useing info from odom message
+        
         while absDistance > 0:
-            # TODO: you will probably need to do some math in this loop to check the CONDITION
             direction = -1 if distance < 0 else 1
             self.move(direction * speed, 0)
             absDistance = abs(distance) - math.sqrt(((self.LATEST_POS.x - START_POS.x) ** 2)+((self.LATEST_POS.y - START_POS.y) ** 2))
@@ -85,13 +82,11 @@ class Base(object):
             speed: The angular speed to rotate, in radians/second.
         """
 
-        # TODO: should we use curr pos instead of counter
-
-        # TODO: rospy.sleep until the base has received at least one message on /odom
+        # rospy.sleep until the base has received at least one message on /odom
         while self.NO_MSG:
             rospy.sleep(0.025)
 
-        # TODO: record start position, use Python's copy.deepcopy
+        # Record start position, use Python's copy.deepcopy
         start = copy.deepcopy(self.LATEST_ODOM)
         START_RAD = self.q_to_yaw(start.pose.pose.orientation)
         if(START_RAD < 0):
@@ -102,13 +97,10 @@ class Base(object):
 
         rate = rospy.Rate(10)
 
-        # TODO: CONDITION should check if the robot has rotated the desired amount
-        # TODO: Be sure to handle the case where the desired amount is negative!
-
+        # Check if the robot has rotated the desired amount
         absAngle = abs(angular_distance) % (2*math.pi)
-        # TODO: Change from using prev time to useing info from odom message
+        
         while absAngle > 0:
-            # TODO: you will probably need to do some math in this loop to check the CONDITION
             direction = -1 if angular_distance < 0 else 1
             self.move(0, direction * speed)
             LAST_RAD = self.LATEST_RAD
