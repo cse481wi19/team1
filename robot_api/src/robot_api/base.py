@@ -120,7 +120,7 @@ class Base(object):
                 else:
                     # rospy.loginfo("4 absAngle = %f, START_RAD = %f, LATEST_RAD = %f", absAngle, START_RAD, LAST_RAD)
                     absAngle -= (START_RAD - LAST_RAD)
-            rospy.loginfo(absAngle)
+            #rospy.loginfo(absAngle)
             START_RAD = LAST_RAD
             rate.sleep()
 

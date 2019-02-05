@@ -20,7 +20,7 @@ class NavPath(object):
 			self._path.append(currPoint)
 		else: 
 			oldLoc = self._path[-1]
-			if (abs(currLoc.x - oldLoc.x) > 0.1 or (abs(currLoc.y - oldLoc.y) > 0.1)):
+			if (abs(currLoc.x - oldLoc.x) > 0.01 or (abs(currLoc.y - oldLoc.y) > 0.01)):
 				self._path.append(currPoint)
 		
 
@@ -28,21 +28,15 @@ class NavPath(object):
 		rospy.loginfo(msg)
 		self._appendPoint(msg)
 		draw_path_in_rviz(marker_publisher, self._path)
-		
-def wait_for_time():                                              
-    """Wait for simulated time to begin.                          
-    """                                                           
-    while rospy.Time().now().to_sec() == 0:                       
-        pass
 
 def draw_path_in_rviz(marker_publisher, points):
     marker = Marker(
                 type=Marker.LINE_STRIP, 
                 id=0,
 				points=points,
-				pose=Pose(Point(0.5, 0.5, 0), Quaternion(0, 0, 0, 1)),
+				pose=Pose(Point(0, 0, 0), Quaternion(0, 0, 0, 1)),
                 scale=Vector3(0.01, 0, 0),
-                header=Header(frame_id='base_link'),
+                header=Header(frame_id='odom'),
                 color=ColorRGBA(0.0, 1.0, 0.0, 0.8),
                 )
     marker_publisher.publish(marker)
