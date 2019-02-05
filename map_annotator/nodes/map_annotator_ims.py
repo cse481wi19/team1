@@ -9,6 +9,7 @@ from interactive_markers.interactive_marker_server import *
 from visualization_msgs.msg import *
 from map_annotator.srv import ManageMarker, ManageMarkerResponse
 from map_annotator.msg import Markers
+from geometry_msgs.msg import PoseStamped
 
 def processFeedback(feedback):
     s = "Feedback from marker '" + feedback.marker_name
@@ -34,7 +35,7 @@ def processFeedback(feedback):
 
 def makeMarker(name):
     int_marker = InteractiveMarker()
-    int_marker.header.frame_id = "base_link"
+    int_marker.header.frame_id = "map"
     int_marker.name = name
     int_marker.description = name
     int_marker.pose.position.x = 1
@@ -103,17 +104,18 @@ class MarkersServer(object):
     def __init__(self):
         # Init Server
         self.server = InteractiveMarkerServer("map_annotator")
-        self.pub = rospy.Publisher('map_annotator/marker_list', Markers, queue_size=10, latch=True)
+        self.list_pub = rospy.Publisher('map_annotator/marker_list', Markers, queue_size=10, latch=True)
+        self.move_pub = rospy.Publisher('move_base_simple/goal', PoseStamped, queue_size=10)
         self.markers = []
-        # Travis added
+        '''# Travis added
         self._odom_sub = rospy.Subscriber('odom', nav_msgs.msg.Odometry, callback=self._odom_callback)
         self.base = robot_api.Base()
         self.LATEST_ODOM = None
-        # end of Travis added
+        '''# end of Travis added
 
     # Travis added this function
-    def _odom_callback(self, msg):
-        self.LATEST_ODOM = msg
+    #def _odom_callback(self, msg):
+    #    self.LATEST_ODOM = msg
 
     def load_markers_from_file(self, path):
         if not os.path.isfile(path): return False
@@ -163,7 +165,7 @@ class MarkersServer(object):
         self.server.insert(makeMarker(name), processFeedback)
         self.server.applyChanges()
         self.markers.append(name)
-        self.pub.publish(self.markers)
+        self.list_pub.publish(self.markers)
         return True
 
     def addMarker(self, marker):
@@ -171,7 +173,7 @@ class MarkersServer(object):
         self.server.insert(marker, processFeedback)
         self.server.applyChanges()
         self.markers.append(marker.name)
-        self.pub.publish(self.markers)
+        self.list_pub.publish(self.markers)
         return True
 
     def deleteMarker(self, name):
@@ -179,16 +181,16 @@ class MarkersServer(object):
         ret = self.server.erase(name)
         self.server.applyChanges()
         self.markers.remove(name)
-        self.pub.publish(self.markers)
+        self.list_pub.publish(self.markers)
         return ret
 
     def gotoMarker(self, name):
         if not name in self.markers: return False
-        while (self.LATEST_ODOM is None):
-            rospy.sleep(2.0)
+        #while (self.LATEST_ODOM is None):
+        #    rospy.sleep(2.0)
         # TODO: implement this
         # Get the latest orientation in radians
-        pose = self.LATEST_ODOM.pose.pose
+        '''pose = self.LATEST_ODOM.pose.pose
         LAST_RAD = self.base.q_to_yaw(pose.orientation) % (2 * math.pi)
         # get the latest position
         LAST_POS = pose.position
@@ -202,7 +204,12 @@ class MarkersServer(object):
         dist = math.sqrt(((MARK_x - LAST_POS.x) ** 2)+((MARK_y - LAST_POS.y) ** 2) +  ((MARK_z - LAST_POS.z) ** 2))
         self.base.go_forward(MARK_x - LAST_POS.x)
         self.base.turn(math.pi / 2)
-        self.base.go_forward(MARK_y - LAST_POS.y)
+        self.base.go_forward(MARK_y - LAST_POS.y)'''
+        self.move_pub.publish(
+		{
+			header: {stamp: now(), frame_id: "map"},
+			pose: self.server.get(name).pose
+		})
         return True
 
     def renameMarker(self, oldname, newname):
