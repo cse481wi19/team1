@@ -1,0 +1,7 @@
+<launch>
+  <arg name="map_file" default="~/maps/playground" />
+  <include file="$(find kuri_navigation)/launch/nav.launch">
+    <arg name="map_file" default="$(arg map_file)" />
+  </include>
+  <node pkg="rviz" type="rviz" name="kuri_nav_rviz" args="-d $(find applications)/config/navigation.rviz" />
+</launch>
