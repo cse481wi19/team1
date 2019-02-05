@@ -12,22 +12,21 @@ import robot_api
 
 def handle_viz_input_forward(input):
 	if (input.event_type == InteractiveMarkerFeedback.BUTTON_CLICK):
-		# TODO saho: move the robot forward when this is clicked
 		print('Moving forward 0.5 m')
 		base = robot_api.Base()
-		base.go_forward(0.5)
+		base.go_forward(0.5, 0.6)
 
 def handle_viz_input_clockwise(input):
 	if (input.event_type == InteractiveMarkerFeedback.BUTTON_CLICK):
 		print('Rotating clockwise 90 degrees')
 		base = robot_api.Base()
-		base.turn(-1.57)
+		base.turn(-1.57, 0.7)
 
 def handle_viz_input_counterclockwise(input):
 	if (input.event_type == InteractiveMarkerFeedback.BUTTON_CLICK):
 		print('Rotating counter-clockwise 90 degrees')
 		base = robot_api.Base()
-		base.turn(1.57)
+		base.turn(1.57, 0.7)
 
 def main():
 	rospy.init_node('interactive_marker_demo')
@@ -37,7 +36,7 @@ def main():
 	int_marker_forward = InteractiveMarker()
 	int_marker_forward.header.frame_id = "base_link"
 	int_marker_forward.name = "forward_marker"
-	int_marker_forward.description = "Forward Click Control"
+	int_marker_forward.description = "Move Forward"
 	int_marker_forward.pose.position.x = 1
 	int_marker_forward.pose.orientation.w = 1
 
@@ -62,7 +61,7 @@ def main():
 	int_marker_clock = InteractiveMarker()
 	int_marker_clock.header.frame_id = "base_link"
 	int_marker_clock.name = "clock_marker"
-	int_marker_clock.description = "Clock Click Control"
+	int_marker_clock.description = "Turn Clockwise"
 	int_marker_clock.pose.position.x = 0
 	int_marker_clock.pose.position.y = -1
 	int_marker_clock.pose.orientation.w = 1
@@ -88,7 +87,7 @@ def main():
 	int_marker_counter = InteractiveMarker()
 	int_marker_counter.header.frame_id = "base_link"
 	int_marker_counter.name = "counter_marker"
-	int_marker_counter.description = "Counter Click Control"
+	int_marker_counter.description = "Turn Counter-clockwise"
 	int_marker_counter.pose.position.x = 0
 	int_marker_counter.pose.position.y = 1
 	int_marker_counter.pose.orientation.w = 1
