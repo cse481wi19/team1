@@ -64,6 +64,18 @@ def makeMarker(name):
     marker.color.g = 1.0
     marker.color.b = 1.0
     marker.color.a = 1.0
+
+    arr_marker = Marker()
+    arr_marker.type = Marker.ARROW
+    arr_marker.pose.orientation.w = 1
+    arr_marker.pose.position.z = .1
+    arr_marker.scale.x = 0.25
+    arr_marker.scale.y = 0.20
+    arr_marker.scale.z = 0.05
+    arr_marker.color.r = 1.0
+    arr_marker.color.g = 0.5
+    arr_marker.color.b = 0.5
+    arr_marker.color.a = 1.0
     
 
     control = InteractiveMarkerControl()
@@ -74,6 +86,7 @@ def makeMarker(name):
     control.interaction_mode = InteractiveMarkerControl.MOVE_PLANE
     control.always_visible = True
     control.markers.append(marker)
+    control.markers.append(arr_marker)
     control.markers.append(name_marker)
     int_marker.controls.append(control)
 
