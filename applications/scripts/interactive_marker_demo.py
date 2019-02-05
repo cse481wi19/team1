@@ -23,7 +23,6 @@ def handle_viz_input_forward(input):
 
 def main():
 	rospy.init_node('interactive_marker_demo')
-	print('Got here')
 	server = InteractiveMarkerServer("simple_marker")
 
 	int_marker = InteractiveMarker()
@@ -52,7 +51,6 @@ def main():
 
 	server.insert(int_marker, handle_viz_input_forward)
 	server.applyChanges()
-	print('Got to the end')
 	rospy.spin()
 
 if __name__ == '__main__':
