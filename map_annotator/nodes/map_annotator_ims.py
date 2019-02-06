@@ -226,7 +226,7 @@ class MarkersServer(object):
 
         # Add new marker
         marker.name = newname
-        marker.controls[0].markers[1].text = newname
+        marker.controls[0].markers[2].text = newname
         self.addMarker(marker)
 
         return True
