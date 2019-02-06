@@ -45,7 +45,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
         angularThres : 0.01,
         transThres : 0.01,
         rate : 10.0,
-        fixedFrame : '/odom'
+        fixedFrame : '/map'
     });
 
     // TF Server
@@ -68,7 +68,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
      // IMarkers
      var imClient = new ROS3D.InteractiveMarkerClient({
         ros : ros,
-        tfClient : scene.baseTFClient,
+        tfClient : scene.robotTFClient,
         topic : '/map_annotator',
         camera : scene.viewer.camera,
         rootObject : scene.viewer.selectableObjects

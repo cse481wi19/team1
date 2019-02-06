@@ -10,6 +10,7 @@ from visualization_msgs.msg import *
 from map_annotator.srv import ManageMarker, ManageMarkerResponse
 from map_annotator.msg import Markers
 from geometry_msgs.msg import PoseStamped
+from std_msgs.msg import Header
 
 def processFeedback(feedback):
     s = "Feedback from marker '" + feedback.marker_name
@@ -205,11 +206,13 @@ class MarkersServer(object):
         self.base.go_forward(MARK_x - LAST_POS.x)
         self.base.turn(math.pi / 2)
         self.base.go_forward(MARK_y - LAST_POS.y)'''
-        self.move_pub.publish(
-		{
-			header: {stamp: now(), frame_id: "map"},
-			pose: self.server.get(name).pose
-		})
+        h = Header()
+        h.stamp = rospy.Time.now()
+        h.frame_id = "map"
+        poseStamped = PoseStamped()
+        poseStamped.header = h
+        poseStamped.pose = self.server.get(name).pose
+        self.move_pub.publish(poseStamped)
         return True
 
     def renameMarker(self, oldname, newname):
