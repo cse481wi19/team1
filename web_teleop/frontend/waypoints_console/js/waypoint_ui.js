@@ -95,7 +95,7 @@ var renameMarkerUI = function(evt) {
 var lookatMarker = function(name) {
     clients.manageMarker.callService(
     new ROSLIB.ServiceRequest({
-        cmd : "look_at",
+        cmd : "look_at_fullbody",
         markerName: name,
         newMarkerName: ""
     }),

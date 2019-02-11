@@ -157,6 +157,14 @@ class MarkersServer(object):
                 response.message = "POINT_OUT_OF_VISION_RANGE"
             else:
                 response.message = "ERROR_MARKER_DOES_NOT_EXIST"
+        elif request.cmd.lower() == 'look_at_fullbody':
+            result = self.lookatMarker(request.markerName, True)
+            if (result == 1):
+                response.message = "SUCCESS_LOOK_AT_FULL_BODY"
+            elif (result == 0):
+                response.message = "POINT_OUT_OF_RANGE"
+            else:
+                response.message = "ERROR_MARKER_DOES_NOT_EXIST"
         return response
 
     ## Marker Support Code
@@ -212,7 +220,7 @@ class MarkersServer(object):
 
         return True
 
-    def lookatMarker(self, name):
+    def lookatMarker(self, name, fullBody = False):
         if not name in self.markers: return -1
         h = Header()
         h.stamp = rospy.Time.now()
@@ -220,7 +228,7 @@ class MarkersServer(object):
         pointStamped = PointStamped()
         pointStamped.header = h
         pointStamped.point = self.server.get(name).pose.position
-        if self.head.look_at(pointStamped):
+        if self.head.look_at(pointStamped, fullBody):
             return 1
         else:
             return 0

@@ -1,15 +1,16 @@
-import actionlib
+import rospy, actionlib
+
 from actionlib_msgs.msg import GoalStatus
 from actionlib.action_client import CommState
-import rospy
-import control_msgs.msg
+
 from control_msgs.msg import FollowJointTrajectoryGoal, FollowJointTrajectoryAction
 from trajectory_msgs.msg import JointTrajectoryPoint, JointTrajectory
+
 from tf import TransformListener
-from math import atan2
 from joint_state_reader import JointStateReader
-import time
-import threading
+from robot_api import Base
+
+from math import atan2, ceil
 
 """ 
 This is set up for Kuri, but you can take inspiration for Fetch if you like.
@@ -33,6 +34,8 @@ class Head(object):
     EYES_CLOSED_BLINK = 0.35
     HEAD_NS = '/head_controller/follow_joint_trajectory' # found on real robot, previously thought to use /command
     EYES_NS = '/eyelids_controller/follow_joint_trajectory'
+    EYES_FRAME = "/head_2_link"
+    BASE_FRAME = "/base_link"
 
     # JS was set to none to try to get demo to work, probably shouldn't be
     # Js could stand for something like joint state controller or joint system
@@ -46,6 +49,7 @@ class Head(object):
         self._eyes_goal = None
         self._eyes_ac = actionlib.ActionClient(eyes_ns or self.EYES_NS, FollowJointTrajectoryAction)
         self.jointReader = JointStateReader()
+        self.base = Base()
         rospy.sleep(0.5)
         return
 
@@ -149,7 +153,7 @@ class Head(object):
             if isinstance(point.time_from_start, (int, float)):
                 point.time_from_start = rospy.Duration(point.time_from_start)
 
-        goal = control_msgs.msg.FollowJointTrajectoryGoal(trajectory=traj)
+        goal = FollowJointTrajectoryGoal(trajectory=traj)
 
         def _handle_transition(gh):
             gh_goal = gh.comm_state_machine.action_goal.goal
@@ -181,16 +185,59 @@ class Head(object):
             self._head_gh = self._head_ac.send_goal(goal, _handle_transition, _handle_feedback)
         return True
 
-    def look_at(self, pointStamped):
-        self._tf.waitForTransform(pointStamped.header.frame_id, "/head_2_link", rospy.Time(), rospy.Duration(4.0))
-        pointStamped.header.stamp = self._tf.getLatestCommonTime(pointStamped.header.frame_id, "/head_2_link")
-        transformedPoint = self._tf.transformPoint("/head_2_link", pointStamped).point
-        pan_rads = self.jointReader.get_joint(self.JOINT_PAN) + atan2(transformedPoint.y, transformedPoint.x) + 0 # TODO: determine constant
+    # Gets an equivalent point in the reference frame "destFrame"
+    def getPointInFrame(self, pointStamped, destFrame):
+        # Wait until we can transform the pointStamped to destFrame
+        self._tf.waitForTransform(pointStamped.header.frame_id, destFrame, rospy.Time(), rospy.Duration(4.0))
+        # Set point header to the last common frame time between its frame and destFrame
+        pointStamped.header.stamp = self._tf.getLatestCommonTime(pointStamped.header.frame_id, destFrame)
+        # Transform the point to destFrame
+        return self._tf.transformPoint(destFrame, pointStamped).point
+
+    # Move body to face this point (does not change head joints)
+    def point_base_at(self, pointStamped, fullBody = False):
+        # Transform the point to the base frame
+        transformedPoint = self.getPointInFrame(pointStamped, self.BASE_FRAME)
+        # Get the radians we need to rotate the base in order to point correctly
+        rotation_rads = atan2(transformedPoint.y, transformedPoint.x)
+        # Do the rotation
+        ROTATION_SPEED = 0.5
+        self.base.turn(rotation_rads)
+        rospy.sleep(ceil(rotation_rads / ROTATION_SPEED)) # Wait for rotation to complete
+
+    # Move head to look at a point; move the body if point if out of range of head (and fullBody = true)
+    # Returns false if point is out of range, true if successful
+    def look_at(self, pointStamped, fullBody = False):
+        # Transform the point to the eye frame
+        eyeFramePoint = self.getPointInFrame(pointStamped, self.EYES_FRAME)
+
+        # Get the radians we need to rotate the head
+        pan_rads = self.jointReader.get_joint(self.JOINT_PAN) + atan2(eyeFramePoint.y, eyeFramePoint.x)
+        
+        # If the rotation is out of the head's range of rotation
         if pan_rads > self.PAN_LEFT or pan_rads < self.PAN_RIGHT:
-            return False
-        tilt_rads = self.jointReader.get_joint(self.JOINT_TILT) - atan2(transformedPoint.z, transformedPoint.x) + 0 # TODO: determine constant
-        if tilt_rads < self.TILT_UP or tilt_rads > self.TILT_DOWN:
-            return False
+            if not fullBody: return False
+            
+            # Rotate the body to point toward the point
+            self.point_base_at(pointStamped)
+            
+            # Then pan the head to look towards it
+            eyeFramePoint = self.getPointInFrame(pointStamped, self.EYES_FRAME)
+            pan_rads = self.jointReader.get_joint(self.JOINT_PAN) + atan2(eyeFramePoint.y, eyeFramePoint.x)
+
+        # Get the amount we should tilt the head
+        tilt_rads = self.jointReader.get_joint(self.JOINT_TILT) - atan2(eyeFramePoint.z, eyeFramePoint.x)
+        
+        # Return if we aren't allowed to move the body and the tilt is out of range
+        if (not fullBody) and (tilt_rads < self.TILT_UP or tilt_rads > self.TILT_DOWN): return False
+        
+        # Otherwise, if the tilt is out of range, move the body backward until the point is in tilt range
+        while fullBody and (tilt_rads < self.TILT_UP or tilt_rads > self.TILT_DOWN):
+            self.base.go_forward(-0.1)
+            rospy.sleep(1) # Wait for movement to complete
+            eyeFramePoint = self.getPointInFrame(pointStamped, self.EYES_FRAME)
+            tilt_rads = self.jointReader.get_joint(self.JOINT_TILT) - atan2(eyeFramePoint.z, eyeFramePoint.x)
+
         self.pan_and_tilt(pan_rads, tilt_rads)
         return True
 
