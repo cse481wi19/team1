@@ -11,6 +11,7 @@
   <depend>roscpp</depend>
   <depend>rospy</depend>
   <depend>trajectory_msgs</depend>
+  <depend>joint_state_reader</depend>
   <export>
   </export>
 </package>

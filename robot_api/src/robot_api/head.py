@@ -1,11 +1,16 @@
 import actionlib
 from actionlib_msgs.msg import GoalStatus
 from actionlib.action_client import CommState
-# TODO: What messages are we going to need?
-import rospy #, ???????_msgs.msg
+import rospy
 import control_msgs.msg
 from control_msgs.msg import FollowJointTrajectoryGoal, FollowJointTrajectoryAction
 from trajectory_msgs.msg import JointTrajectoryPoint, JointTrajectory
+from tf import TransformListener
+from math import atan2
+from joint_state_reader import JointStateReader
+import time
+import threading
+
 """ 
 This is set up for Kuri, but you can take inspiration for Fetch if you like.
 """
@@ -26,8 +31,6 @@ class Head(object):
     EYES_HAPPY = -0.16
     EYES_SUPER_SAD = 0.15
     EYES_CLOSED_BLINK = 0.35
-    # TODO: Aw shucks, ????? again?!
-    # What topics should we send trajectories to for the head and eyes?
     HEAD_NS = '/head_controller/follow_joint_trajectory' # found on real robot, previously thought to use /command
     EYES_NS = '/eyelids_controller/follow_joint_trajectory'
 
@@ -35,13 +38,15 @@ class Head(object):
     # Js could stand for something like joint state controller or joint system
     def __init__(self, js=None, head_ns=None, eyes_ns=None):
         self._js = js
+        self._tf = TransformListener()
         self._head_gh = None
         self._head_goal = None
-        # TODO: What is the type of these actions? 
         self._head_ac = actionlib.ActionClient(head_ns or self.HEAD_NS, FollowJointTrajectoryAction)
         self._eyes_gh = None
         self._eyes_goal = None
         self._eyes_ac = actionlib.ActionClient(eyes_ns or self.EYES_NS, FollowJointTrajectoryAction)
+        self.jointReader = JointStateReader()
+        rospy.sleep(0.5)
         return
 
     def cancel(self):
@@ -74,9 +79,6 @@ class Head(object):
         """
         if(radians < self.EYES_HAPPY or radians > self.EYES_CLOSED):
             return
-        # TODO: Build a JointTrajectoryPoint that expresses the target configuration
-        # TODO: Put that point into the right container type, and target the 
-        # correct joint.
         point = JointTrajectoryPoint()
         point.positions.append(float(radians))
         point.time_from_start = rospy.Duration(duration)
@@ -119,9 +121,6 @@ class Head(object):
             return
         if(tilt > self.TILT_DOWN or tilt < self.TILT_UP):
             return
-        # TODO: Build a JointTrajectoryPoint that expresses the target configuration
-        # TODO: Put that point into the right container type, and target the 
-        # correct joint.
         point = JointTrajectoryPoint()
         point.positions = [float(pan), float(tilt)]
         point.time_from_start = rospy.Duration(duration)
@@ -150,13 +149,15 @@ class Head(object):
             if isinstance(point.time_from_start, (int, float)):
                 point.time_from_start = rospy.Duration(point.time_from_start)
 
-        # TODO: What should be the type of the goal?
         goal = control_msgs.msg.FollowJointTrajectoryGoal(trajectory=traj)
 
         def _handle_transition(gh):
             gh_goal = gh.comm_state_machine.action_goal.goal
             if done_cb is not None and (id(self._eyes_goal) == id(gh_goal) or id(self._head_goal) == id(gh_goal)):
                 if gh.get_comm_state() == CommState.DONE:
+                    if (id(self._head_goal) == id(gh_goal)):
+                        self.currentPan = self._head_goal.trajectory.points[0].positions[0]
+                        self.currentTilt = self._head_goal.trajectory.points[0].positions[1]
                     done_cb(gh.get_goal_status(), gh.get_result())
             return
 
@@ -170,16 +171,27 @@ class Head(object):
             if not self._eyes_ac:
                 return False
             self._eyes_goal = goal
-            # TODO: How do we actually send the goal?
             self._eyes_ac.wait_for_server()
             self._eyes_gh = self._eyes_ac.send_goal(goal, _handle_transition, _handle_feedback)
         else:
             if not self._head_ac:
                 return False
             self._head_goal = goal
-            # TODO: How do we actually send the goal?
             self._head_ac.wait_for_server()
             self._head_gh = self._head_ac.send_goal(goal, _handle_transition, _handle_feedback)
+        return True
+
+    def look_at(self, pointStamped):
+        self._tf.waitForTransform(pointStamped.header.frame_id, "/head_2_link", rospy.Time(), rospy.Duration(4.0))
+        pointStamped.header.stamp = self._tf.getLatestCommonTime(pointStamped.header.frame_id, "/head_2_link")
+        transformedPoint = self._tf.transformPoint("/head_2_link", pointStamped).point
+        pan_rads = self.jointReader.get_joint(self.JOINT_PAN) + atan2(transformedPoint.y, transformedPoint.x) + 0 # TODO: determine constant
+        if pan_rads > self.PAN_LEFT or pan_rads < self.PAN_RIGHT:
+            return False
+        tilt_rads = self.jointReader.get_joint(self.JOINT_TILT) - atan2(transformedPoint.z, transformedPoint.x) + 0 # TODO: determine constant
+        if tilt_rads < self.TILT_UP or tilt_rads > self.TILT_DOWN:
+            return False
+        self.pan_and_tilt(pan_rads, tilt_rads)
         return True
 
     def shutdown(self):

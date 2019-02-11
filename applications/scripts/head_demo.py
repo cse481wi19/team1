@@ -2,7 +2,8 @@
 
 import rospy
 import robot_api
-
+from geometry_msgs.msg import PointStamped, Point
+from std_msgs.msg import Header
 
 def print_usage():
     # NOTE: We don't expect you to implement look_at for Kuri
@@ -42,7 +43,28 @@ def main():
             return
         frame_id, x, y, z = argv[2], float(argv[3]), float(argv[4]), float(
             argv[5])
-        rospy.logerr('Not implemented.')
+        
+        # Setup Header
+        h = Header()
+        h.frame_id = frame_id
+        h.stamp = rospy.Time().now()
+
+        # Setup Point
+        p = Point()
+        p.x = x
+        p.y = y
+        p.z = z
+
+        # Point Stamped
+        ps = PointStamped()
+        ps.header = h
+        ps.point = p
+
+        result = head.look_at(ps)
+
+        if result: print("Success")
+        else: print("Point out of range")
+
     elif command == 'pan_tilt':
         if len(argv) < 4:
             print_usage()

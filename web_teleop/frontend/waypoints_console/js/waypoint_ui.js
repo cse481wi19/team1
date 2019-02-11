@@ -91,3 +91,20 @@ var renameMarkerUI = function(evt) {
     event.target[0].value = ""
     event.target[1].value = ""
 }
+
+var lookatMarker = function(name) {
+    clients.manageMarker.callService(
+    new ROSLIB.ServiceRequest({
+        cmd : "look_at",
+        markerName: name,
+        newMarkerName: ""
+    }),
+    function(result) {
+        console.log(result)
+    });
+}
+
+var lookatMarkerUI = function(evt) {
+    lookatMarker(event.target[0].value)
+    event.target[0].value = ""
+}

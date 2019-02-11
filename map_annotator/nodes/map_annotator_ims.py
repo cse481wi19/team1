@@ -2,15 +2,14 @@
 import rospy
 import pickle
 import os.path
-import robot_api #Travis added this
-import math # Travis added this
 import nav_msgs.msg._Odometry
 from interactive_markers.interactive_marker_server import *
 from visualization_msgs.msg import *
 from map_annotator.srv import ManageMarker, ManageMarkerResponse
 from map_annotator.msg import Markers
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseStamped, PointStamped
 from std_msgs.msg import Header
+from robot_api import Head
 
 def processFeedback(feedback):
     s = "Feedback from marker '" + feedback.marker_name
@@ -108,15 +107,7 @@ class MarkersServer(object):
         self.list_pub = rospy.Publisher('map_annotator/marker_list', Markers, queue_size=10, latch=True)
         self.move_pub = rospy.Publisher('move_base_simple/goal', PoseStamped, queue_size=10)
         self.markers = []
-        '''# Travis added
-        self._odom_sub = rospy.Subscriber('odom', nav_msgs.msg.Odometry, callback=self._odom_callback)
-        self.base = robot_api.Base()
-        self.LATEST_ODOM = None
-        '''# end of Travis added
-
-    # Travis added this function
-    #def _odom_callback(self, msg):
-    #    self.LATEST_ODOM = msg
+        self.head = Head()
 
     def load_markers_from_file(self, path):
         if not os.path.isfile(path): return False
@@ -158,9 +149,18 @@ class MarkersServer(object):
                 response.message = "SUCCESS_RENAME"
             else:
                 response.message = "ERROR_MARKER_DOES_NOT_EXIST"
+        elif request.cmd.lower() == 'look_at':
+            result = self.lookatMarker(request.markerName)
+            if (result == 1):
+                response.message = "SUCCESS_LOOK_AT"
+            elif (result == 0):
+                response.message = "POINT_OUT_OF_VISION_RANGE"
+            else:
+                response.message = "ERROR_MARKER_DOES_NOT_EXIST"
         return response
 
     ## Marker Support Code
+    
     def createAndAddMarker(self, name):
         if name in self.markers: return False
         self.server.insert(makeMarker(name), processFeedback)
@@ -187,25 +187,6 @@ class MarkersServer(object):
 
     def gotoMarker(self, name):
         if not name in self.markers: return False
-        #while (self.LATEST_ODOM is None):
-        #    rospy.sleep(2.0)
-        # TODO: implement this
-        # Get the latest orientation in radians
-        '''pose = self.LATEST_ODOM.pose.pose
-        LAST_RAD = self.base.q_to_yaw(pose.orientation) % (2 * math.pi)
-        # get the latest position
-        LAST_POS = pose.position
-	    # get the markers orientation in radians
-        MARK_POS = self.server.get(name).pose
-        MARK_RAD = (self.base.q_to_yaw(MARK_POS.orientation)) % (2 * math.pi)
-        MARK_x = MARK_POS.position.x
-        MARK_y = MARK_POS.position.y
-        MARK_z = MARK_POS.position.z
-        self.base.turn(LAST_RAD * -1)
-        dist = math.sqrt(((MARK_x - LAST_POS.x) ** 2)+((MARK_y - LAST_POS.y) ** 2) +  ((MARK_z - LAST_POS.z) ** 2))
-        self.base.go_forward(MARK_x - LAST_POS.x)
-        self.base.turn(math.pi / 2)
-        self.base.go_forward(MARK_y - LAST_POS.y)'''
         h = Header()
         h.stamp = rospy.Time.now()
         h.frame_id = "map"
@@ -230,6 +211,19 @@ class MarkersServer(object):
         self.addMarker(marker)
 
         return True
+
+    def lookatMarker(self, name):
+        if not name in self.markers: return -1
+        h = Header()
+        h.stamp = rospy.Time.now()
+        h.frame_id = "map"
+        pointStamped = PointStamped()
+        pointStamped.header = h
+        pointStamped.point = self.server.get(name).pose.position
+        if self.head.look_at(pointStamped):
+            return 1
+        else:
+            return 0
 
 if __name__=="__main__":
     rospy.init_node("map_annotator")
