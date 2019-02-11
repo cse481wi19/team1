@@ -11,42 +11,44 @@ class FaceChange(object):
 	def __init__(self):
 		self._val = 0
 
-	def face_below_middle_of_frame(self, msg):
+	def face_pan_amnt(self, confident_face):
 		print('TODO: Check msg object center pt')
-		return True
+		return confident_face.x
 
-	def face_above_middle_of_frame(self, msg):
+	def face_tilt_amnt(self, confident_face):
 		print('TODO: Check msg object center pt')
-		return True
+		return confident_face.y
 
 	def _updateLights(self, msg):
 		print('TODO: Update Kuri Lights based on detections.')
 		lights = robot_api.Lights()
 		
 		num_faces = len(msg.faces.faces)
-		size = msg.faces.faces.size
-		pos = msg.faces.faces.center
-		# TODO: Other confidence detection exists @ msg.all_detections.objects.confidence
-		confidence = msg.faces.faces.confidence
+		# size = msg.faces.faces[0].size
+		# pos = msg.faces.faces[0].center
+		# confidence = msg.faces.faces[0].confidence
 		
-		# TODO: Change the light color to visualize some aspect of the detections
 		if num_faces == 0:
-			lights.put_pixels(Lights.RED)
+			lights.put_pixels([(255,0,0)]*15)
 		else:
-			lights.put_pixels(Lights.GREEN)
+			lights.put_pixels([(0,num_faces*25+5,0)]*15)
 
 	def _servoFace(self, msg):
 		print('TODO: Visual Servoing: Making Kuri look at a face')
 		head = robot_api.Head()
 
-		# TODO: Figure out what the pan and tilt values should be
-		pan = 0
-		tilt = 0
+		faces = msg.faces.faces 
+		confident_face = None
+		for face in faces:
+			if confident_face == None or confident_face.confidence < face.confidence:
+				confident_face = face
+
+		# TODO: test this
+		pan = face_pan_amnt
+		tilt = face_tilt_amnt
 		
-		if face_below_middle_of_frame(msg):
-			head.pan_and_tilt(pan, tilt)
-		elif face_above_middle_of_frame(msg):
-			head.pan_and_tilt(pan, tilt)
+		head.pan_and_tilt(pan, tilt)
+		
 
 	def callback(self, msg):
 		rospy.loginfo(msg)
