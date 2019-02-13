@@ -202,6 +202,7 @@ class Head(object):
         rotation_rads = atan2(transformedPoint.y, transformedPoint.x)
         # Do the rotation
         ROTATION_SPEED = 0.5
+        rospy.loginfo(rotation_rads)
         self.base.turn(rotation_rads)
         rospy.sleep(ceil(rotation_rads / ROTATION_SPEED)) # Wait for rotation to complete
 

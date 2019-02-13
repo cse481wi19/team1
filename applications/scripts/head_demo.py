@@ -36,6 +36,7 @@ def main():
     command = argv[1]
 
     head = robot_api.Head()
+    expression = robot_api.Expressions()
 
     if command == 'look_at':
         if len(argv) < 6:
@@ -60,7 +61,7 @@ def main():
         ps.header = h
         ps.point = p
 
-        result = head.look_at(ps)
+        result = head.look_at(ps, True)
 
         if result: print("Success")
         else: print("Point out of range")
@@ -77,6 +78,10 @@ def main():
             return
         angle = float(argv[2])
         head.eyes_to(angle)
+    elif command == 'nod_head':
+        expression.nod_head()
+    elif command == 'shake_head':
+        expression.shake_head()
     else:
         print_usage()
 
