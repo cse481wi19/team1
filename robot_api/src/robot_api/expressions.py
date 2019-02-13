@@ -31,13 +31,40 @@ class Expressions(object):
         rospy.sleep(1)
     
     def be_happy(self):
+        # Happy eyes
+        self._head.eyes_to(-0.16)
 
+        # Yellow Lights
+        self._lights.put_pixels(
+            [(255, 255, 137)] * 15
+        )
 
-        # eyelids
-        # lights
-        # sound
+        # Happy Sound
+        # TODO - implement
+
         return
     
-    # def be_sad(self):
+    def be_sad(self):
+         # Sad eyes
+        self._head.eyes_to(0.15)
 
-    # def be_neutral(self):
+        # Blue Lights
+        self._lights.put_pixels(
+            [(136, 190, 224)] * 15
+        )
+
+        # Sad Sound
+        # TODO - implement
+
+        return
+
+    def be_neutral(self):
+         # Neutral eyes
+        self._head.eyes_to(0.1)
+
+        #  Lights
+        self._lights.put_pixels(
+            [(232, 186, 255)] * 15
+        )
+
+        return
