@@ -5,11 +5,28 @@ import robot_api
 
 from vision_msgs.msg import FrameResults, ImageClustering
 from nav_msgs.msg import Odometry
+from std_msgs.msg import Header, Int8
+from geometry_msgs.msg import PointStamped, Point
 
 # The FaceChange class handles all Face Detection related Kuri changes.
 class FaceChange(object):
 	def __init__(self):
 		self._val = 0
+		self.face_pub = rospy.Publisher('vision/most_confident_face_pos', PointStamped, queue_size=10)
+		self.num_faces_pub = rospy.Publisher('vision/face_count', PointStamped, queue_size=10)
+
+	# Point point = the point in 3d space
+	# Frame f = the frame of the point p
+	def publishPoint(self, point, frame):
+		h = Header()
+		h.frame_id = frame
+		h.stamp = rospy.Time().now()
+
+		ps = PointStamped()
+		ps.header = h
+		ps.point = point
+
+		self.face_pub.publish(ps)
 
 	def face_pan_amnt(self, confident_face):
 		print('TODO: Check msg object center pt')
@@ -44,8 +61,9 @@ class FaceChange(object):
 				confident_face = face
 
 		# TODO: test this
-		pan = face_pan_amnt
-		tilt = face_tilt_amnt
+		if confident_face == None: return
+		pan = face_pan_amnt(confident_face)
+		tilt = face_tilt_amnt(confident_face)
 		
 		head.pan_and_tilt(pan, tilt)
 		
@@ -55,6 +73,13 @@ class FaceChange(object):
 		print('Callback reached')
 		self._updateLights(msg)
 		self._servoFace(msg)
+
+		# self.publishPoint(point) do this here, this will move to and look at the person
+
+		# this should always go last
+		i = Int8()
+		i.data = len(msg.faces.faces)
+		self.num_faces_pub.publish(i)
                 
 def main():
 	rospy.init_node('face_detection_demo')
