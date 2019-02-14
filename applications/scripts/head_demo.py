@@ -13,10 +13,14 @@ def print_usage():
     print '    rosrun applications head_demo.py look_at FRAME_ID X Y Z'
     print '    rosrun applications head_demo.py pan_tilt PAN_ANG TILT_ANG'
     print '    rosrun applications head_demo.py eyes ANG'
+    print '    rosrun applications head_demo.py [nod|shake]_head'
+    print '    rosrun applications head_demo.py be_[happy|sad|neutral]'
     print 'Examples:'
     print '    rosrun applications head_demo.py look_at base_link 1 0 0.3'
     print '    rosrun applications head_demo.py pan_tilt 0 0.707'
     print '    rosrun applications head_demo.py eyes .50'
+    print '    rosrun applications head_demo.py nod_head'
+    print '    rosrun applications head_demo.py be_happy'
 
 
 def wait_for_time():
@@ -82,6 +86,12 @@ def main():
         expression.nod_head()
     elif command == 'shake_head':
         expression.shake_head()
+    elif command == 'be_happy':
+        expression.be_happy()
+    elif command == 'be_sad':
+        expression.be_sad()
+    elif command == 'be_neutral':
+        expression.be_neutral()
     else:
         print_usage()
 

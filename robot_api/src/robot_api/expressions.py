@@ -11,28 +11,29 @@ class Expressions(object):
     def nod_head(self):
         # Tilt Limits: -0.92 and 0.29
         duration = 0.05
+        self.be_neutral()
         for x in range(3):
             self._head.pan_and_tilt(0, -0.3, duration)
             rospy.sleep(0.2)
             self._head.pan_and_tilt(0, 0.1, duration)
             rospy.sleep(0.2)
-        self._head.pan_and_tilt(0, 0, duration)
-        rospy.sleep(1)
+        self.be_neutral()
 
     def shake_head(self):
         # Pan Limits: -0.78 and 0.78
         duration = 0.05
+        self.be_neutral()
         for x in range(2):
             self._head.pan_and_tilt(0.5, 0, duration)
             rospy.sleep(0.2)
             self._head.pan_and_tilt(-.5, 0, duration)
             rospy.sleep(0.2)
-        self._head.pan_and_tilt(0, 0, duration)
-        rospy.sleep(1)
+        self.be_neutral()
     
     def be_happy(self):
         # Happy eyes
         self._head.eyes_to(-0.16)
+        self._head.pan_and_tilt(0, -0.2, 0.05)
 
         # Yellow Lights
         self._lights.put_pixels(
@@ -42,29 +43,31 @@ class Expressions(object):
         # Happy Sound
         # TODO - implement
 
-        return
+        rospy.sleep(3)
+        self.be_neutral()
     
     def be_sad(self):
          # Sad eyes
         self._head.eyes_to(0.15)
+        self._head.pan_and_tilt(0, 0.2, 0.05)
 
         # Blue Lights
         self._lights.put_pixels(
-            [(136, 190, 224)] * 15
+            [(0, 0, 224)] * 15
         )
 
         # Sad Sound
         # TODO - implement
 
-        return
+        rospy.sleep(3)
+        self.be_neutral()
 
     def be_neutral(self):
-         # Neutral eyes
-        self._head.eyes_to(0.1)
+        # Neutral head position and eyes
+        self._head.pan_and_tilt(0, 0, 0.05)
+        self._head.eyes_to(0.05)
 
-        #  Lights
+        # No Lights
         self._lights.put_pixels(
-            [(232, 186, 255)] * 15
+            [(0, 0, 0)] * 15
         )
-
-        return
