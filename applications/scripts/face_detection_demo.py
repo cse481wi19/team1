@@ -11,44 +11,61 @@ from geometry_msgs.msg import PointStamped, Point
 # The FaceChange class handles all Face Detection related Kuri changes.
 class FaceChange(object):
 	def __init__(self):
-		self._val = 0
 		self.face_pub = rospy.Publisher('vision/most_confident_face_pos', PointStamped, queue_size=10)
 		self.num_faces_pub = rospy.Publisher('vision/face_count', PointStamped, queue_size=10)
 
-	# Point point = the point in 3d space
-	# Frame f = the frame of the point p
-	def publishPoint(self, point, frame):
-		h = Header()
-		h.frame_id = frame
-		h.stamp = rospy.Time().now()
+	# Publishes the number of faces found in a frame.
+	# Params:
+	#		msg: A FrameResults message
+	# Returns:
+	# 		None
+	def publishNumFaces(self, msg):
+		i = Int8()
+		i.data = len(msg.faces.faces)
+		self.num_faces_pub.publish(i)
 
-		ps = PointStamped()
-		ps.header = h
-		ps.point = point
+	# Publishes the location of a face, as a PointStamped message.
+	# Params:
+	#		msg: A FrameResults message
+	# Returns:
+	# 		None
+	def publishMostConfidentFacePosition(self, msg):
+		faces = msg.faces.faces 
+		confident_face = None
+		for face in faces:
+			if confident_face == None or confident_face.confidence < face.confidence:
+				confident_face = face
+		if confident_face is not None:
+			self.face_pub.publish(self.getFaceLocation(confident_face))
 
-		self.face_pub.publish(ps)
-
-	def face_pan_amnt(self, confident_face):
-		print('TODO: Check msg object center pt')
-		return confident_face.x
-
-	def face_tilt_amnt(self, confident_face):
-		print('TODO: Check msg object center pt')
-		return confident_face.y
+	# Get a face's location in 3D space.
+	#  Params:
+	#  		face: A Face message.
+	#  Returns:
+	# 		A PointStamped message
+	def getFaceLocation(self, face):
+		result = PointStamped()
+		result.point = face.center
+		result.header = face.header
+		return result
 
 	def _updateLights(self, msg):
-		print('TODO: Update Kuri Lights based on detections.')
 		lights = robot_api.Lights()
 		
 		num_faces = len(msg.faces.faces)
 		# size = msg.faces.faces[0].size
 		# pos = msg.faces.faces[0].center
-		# confidence = msg.faces.faces[0].confidence
+		confidence = msg.faces.faces[0].confidence
 		
 		if num_faces == 0:
 			lights.put_pixels([(255,0,0)]*15)
 		else:
-			lights.put_pixels([(0,num_faces*25+5,0)]*15)
+			pixels = [(0,confidence*255,0)]*num_faces
+			if num_faces < 15:
+				for x in range(15-num_faces):
+					pixels.append((0,0,0))
+			lights.put_pixels(pixels)
+					
 
 	def _servoFace(self, msg):
 		print('TODO: Visual Servoing: Making Kuri look at a face')
@@ -62,10 +79,7 @@ class FaceChange(object):
 
 		# TODO: test this
 		if confident_face == None: return
-		pan = face_pan_amnt(confident_face)
-		tilt = face_tilt_amnt(confident_face)
-		
-		head.pan_and_tilt(pan, tilt)
+		head.look_at(getFaceLocation(confident_face))
 		
 
 	def callback(self, msg):
@@ -73,13 +87,9 @@ class FaceChange(object):
 		print('Callback reached')
 		self._updateLights(msg)
 		self._servoFace(msg)
-
-		# self.publishPoint(point) do this here, this will move to and look at the person
-
-		# this should always go last
-		i = Int8()
-		i.data = len(msg.faces.faces)
-		self.num_faces_pub.publish(i)
+			
+		self.publishMostConfidentFacePosition(msg)
+		self.publishNumFaces(msg) # this should always go last
                 
 def main():
 	rospy.init_node('face_detection_demo')
