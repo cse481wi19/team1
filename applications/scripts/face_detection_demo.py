@@ -12,7 +12,7 @@ from geometry_msgs.msg import PointStamped, Point
 class FaceChange(object):
 	def __init__(self):
 		self.face_pub = rospy.Publisher('vision/most_confident_face_pos', PointStamped, queue_size=10)
-		self.num_faces_pub = rospy.Publisher('vision/face_count', PointStamped, queue_size=10)
+		self.num_faces_pub = rospy.Publisher('vision/face_count', Int8, queue_size=10)
 
 	# Publishes the number of faces found in a frame.
 	# Params:
@@ -55,20 +55,19 @@ class FaceChange(object):
 		num_faces = len(msg.faces.faces)
 		# size = msg.faces.faces[0].size
 		# pos = msg.faces.faces[0].center
-		confidence = msg.faces.faces[0].confidence
-		
 		if num_faces == 0:
 			lights.put_pixels([(255,0,0)]*15)
 		else:
-			pixels = [(0,confidence*255,0)]*num_faces
+			confidence = msg.faces.faces[0].confidence
+			# pixels = [(0,confidence*255,0)]*num_faces
+			pixels = [(0,255,0)]*num_faces
 			if num_faces < 15:
 				for x in range(15-num_faces):
-					pixels.append((0,0,0))
+					pixels.append((0,0,255))
 			lights.put_pixels(pixels)
 					
 
 	def _servoFace(self, msg):
-		print('TODO: Visual Servoing: Making Kuri look at a face')
 		head = robot_api.Head()
 
 		faces = msg.faces.faces 
@@ -79,12 +78,11 @@ class FaceChange(object):
 
 		# TODO: test this
 		if confident_face == None: return
-		head.look_at(getFaceLocation(confident_face))
+		head.look_at(self.getFaceLocation(confident_face), False)
 		
 
 	def callback(self, msg):
 		rospy.loginfo(msg)
-		print('Callback reached')
 		self._updateLights(msg)
 		self._servoFace(msg)
 			
@@ -98,7 +96,7 @@ def main():
 
 	# Activate Vision API's Face Detector
 	# TODO: See if a skip ratio is needed for req_mods. (Suggested:3) 
-	vision.req_mods([["activate", "face_detector", {"fps": 6}, {}]], [])
+	vision.req_mods([["activate", "face_detector", {"fps": 6}, {"skip_ratio": 3}]], [])
 
 	# Trigger callback
 	rospy.Subscriber('vision/results', FrameResults, face_change.callback) 
