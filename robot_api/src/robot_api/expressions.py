@@ -41,15 +41,11 @@ class Expressions(object):
         )
 
         # Happy Sound
-        sound = sound_source.play('/home/team1/catkin_ws/src/sound_effects/Monkey-Screech.wav')
-        rospy.sleep(0.5)
-        sound = sound_source.play('/home/team1/catkin_ws/src/sound_effects/Monkey-Screech.wav')
-        rospy.sleep(0.5)
-        sound = sound_source.play('/home/team1/catkin_ws/src/sound_effects/Monkey-Screech.wav')
+        sound = sound_source.play('/home/team1/catkin_ws/src/sound_effects/happy_mario.wav')
         rospy.sleep(1)
         sound_source.cancel(sound)
 
-        rospy.sleep(3)
+        rospy.sleep(2)
         self.be_neutral()
     
     def be_sad(self):
@@ -63,15 +59,11 @@ class Expressions(object):
         )
 
         # Sad Sound
-        sound = sound_source.play('/home/team1/catkin_ws/src/sound_effects/Monkey-Screech.wav')
-        rospy.sleep(0.5)
-        sound = sound_source.play('/home/team1/catkin_ws/src/sound_effects/Monkey-Screech.wav')
-        rospy.sleep(0.5)
-        sound = sound_source.play('/home/team1/catkin_ws/src/sound_effects/Monkey-Screech.wav')
+        sound = sound_source.play('/home/team1/catkin_ws/src/sound_effects/sad_mario.wav')
         rospy.sleep(1)
         sound_source.cancel(sound)
 
-        rospy.sleep(3)
+        rospy.sleep(2)
         self.be_neutral()
 
     def be_neutral(self):
