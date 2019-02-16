@@ -1,12 +1,12 @@
 import rospy
-from robot_api import Head
-from robot_api import Lights
+from robot_api import Head, Lights, SoundSource
 
 class Expressions(object):
 
     def __init__(self):
         self._head = Head()
         self._lights = Lights()
+        self._sound_source = SoundSource()
 
     def nod_head(self):
         # Tilt Limits: -0.92 and 0.29
@@ -41,7 +41,13 @@ class Expressions(object):
         )
 
         # Happy Sound
-        # TODO - implement
+        sound = sound_source.play('/home/team1/catkin_ws/src/sound_effects/Monkey-Screech.wav')
+        rospy.sleep(0.5)
+        sound = sound_source.play('/home/team1/catkin_ws/src/sound_effects/Monkey-Screech.wav')
+        rospy.sleep(0.5)
+        sound = sound_source.play('/home/team1/catkin_ws/src/sound_effects/Monkey-Screech.wav')
+        rospy.sleep(1)
+        sound_source.cancel(sound)
 
         rospy.sleep(3)
         self.be_neutral()
@@ -57,7 +63,13 @@ class Expressions(object):
         )
 
         # Sad Sound
-        # TODO - implement
+        sound = sound_source.play('/home/team1/catkin_ws/src/sound_effects/Monkey-Screech.wav')
+        rospy.sleep(0.5)
+        sound = sound_source.play('/home/team1/catkin_ws/src/sound_effects/Monkey-Screech.wav')
+        rospy.sleep(0.5)
+        sound = sound_source.play('/home/team1/catkin_ws/src/sound_effects/Monkey-Screech.wav')
+        rospy.sleep(1)
+        sound_source.cancel(sound)
 
         rospy.sleep(3)
         self.be_neutral()
