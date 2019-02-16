@@ -100,8 +100,6 @@ def main():
         sound = sound_source.play('/home/team1/catkin_ws/src/sound_effects/Monkey-Screech.wav')
         rospy.sleep(0.5)
         sound = sound_source.play('/home/team1/catkin_ws/src/sound_effects/Monkey-Screech.wav')
-        rospy.sleep(2)
-        sound = sound_source.play('/home/team1/catkin_ws/src/sound_effects/inconceivable.wav')
         rospy.sleep(1)
         sound_source.cancel(sound)
     else:
