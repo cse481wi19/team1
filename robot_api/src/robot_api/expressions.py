@@ -6,7 +6,7 @@ class Expressions(object):
     def __init__(self):
         self._head = Head()
         self._lights = Lights()
-        self._sound_source = SoundSource()
+        self._sound_source = SoundSource('Luci')
 
     def nod_head(self):
         # Tilt Limits: -0.92 and 0.29
@@ -37,13 +37,13 @@ class Expressions(object):
 
         # Yellow Lights
         self._lights.put_pixels(
-            [(255, 255, 137)] * 15
+            [(255, 255, 12)] * 15
         )
 
         # Happy Sound
-        sound = sound_source.play('/home/team1/catkin_ws/src/sound_effects/happy_mario.wav')
+        sound = self._sound_source.play('/home/team1/catkin_ws/src/sound_effects/happy_mario.wav')
         rospy.sleep(1)
-        sound_source.cancel(sound)
+        self._sound_source.cancel(sound)
 
         rospy.sleep(2)
         self.be_neutral()
@@ -59,9 +59,9 @@ class Expressions(object):
         )
 
         # Sad Sound
-        sound = sound_source.play('/home/team1/catkin_ws/src/sound_effects/sad_mario.wav')
+        sound = self._sound_source.play('/home/team1/catkin_ws/src/sound_effects/sad_mario.wav')
         rospy.sleep(1)
-        sound_source.cancel(sound)
+        self._sound_source.cancel(sound)
 
         rospy.sleep(2)
         self.be_neutral()
