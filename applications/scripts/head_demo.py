@@ -41,6 +41,7 @@ def main():
 
     head = robot_api.Head()
     expression = robot_api.Expressions()
+    sound_source = robot_api.SoundSource('Test')
 
     if command == 'look_at':
         if len(argv) < 6:
@@ -92,6 +93,11 @@ def main():
         expression.be_sad()
     elif command == 'be_neutral':
         expression.be_neutral()
+    # TODO Factor out sound stuff into different demo file
+    elif command == 'play_sound':
+        sound = sound_source.play('/home/team1/catkin_ws/src/cse481wi19/sound_effects/Monkey-Screech.wav')
+        rospy.sleep(2)
+        sound_source.cancel(sound)
     else:
         print_usage()
 
