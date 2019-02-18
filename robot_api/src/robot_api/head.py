@@ -157,10 +157,10 @@ class Head(object):
 
         def _handle_transition(gh):
             gh_goal = gh.comm_state_machine.action_goal.goal
-            if done_cb is not None and (id(self._eyes_goal) == id(gh_goal) or id(self._head_goal) == id(gh_goal)):
-                if gh.get_comm_state() == CommState.DONE:
-                    if (id(self._head_goal) == id(gh_goal)):
-                        self.currentPan = self._head_goal.trajectory.points[0].positions[0]
+            if done_cb is not None and (id(self._eyes_goal) == id(gh_waitForTransformgoal) or id(self._head_goal) == id(gh_goal)):
+                if gh.get_comm_state() == CommState.DONE:waitForTransform
+                    if (id(self._head_goal) == id(gh_goal)):waitForTransform
+                        self.currentPan = self._head_goal.trajectory.waitForTransformpoints[0].positions[0]
                         self.currentTilt = self._head_goal.trajectory.points[0].positions[1]
                     done_cb(gh.get_goal_status(), gh.get_result())
             return

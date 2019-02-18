@@ -8,21 +8,19 @@ from vision_msgs.msg import FrameResults, ImageClustering
 from nav_msgs.msg import Odometry
 from std_msgs.msg import Header, Int8
 from geometry_msgs.msg import PointStamped, Point
+from threading import Thread
+from threading import RLock
 
 # The FaceChange class handles all Face Detection related Kuri changes.
 class FaceChange(object):
-	# height and width in pixels, dist in feet
-	# REF_HEAD_WIDTH = 72.26519775390625		#7 inches
-	# REF_HEAD_HEIGHT = 424.66326904296875   #10 inches
-	# REF_HEAD_SIZE_PERCENT = 0.00112760916818
-	# REF_HEAD_SIZE = REF_HEAD_HEIGHT * REF_HEAD_WIDTH * REF_HEAD_SIZE_PERCENT * 100.0
-	# REF_HEAD_DIST_FT = 2.0
-	# PIXELS_PER_INCH = (REF_HEAD_SIZE/70) ** 0.5
-	# REF_HEAD_DIST = PIXELS_PER_INCH * REF_HEAD_DIST_FT * 12.0
 	
 	def __init__(self):
 		self.face_pub = rospy.Publisher('vision/most_confident_face_pos', PointStamped, queue_size=10)
 		self.num_faces_pub = rospy.Publisher('vision/face_count', Int8, queue_size=10)
+		self.lights = robot_api.Lights()
+		self.head = robot_api.Head()
+		self.lock = RLock()
+		self.base = robot_api.Base()
 		rospy.sleep(0.5)
 
 	# Publishes the number of faces found in a frame.
@@ -65,27 +63,30 @@ class FaceChange(object):
 	# 		A PointStamped message
 	def getFaceLocation(self, face):
 		face_size1 = face.bb[3] * face.bb[2] * face.size * 100.0
-		result = PointStamped(header=face.header, point=Point((face.size **-0.4) * 0.3, (face.center.x - 0.5), -1*(face.center.y - 0.5)))
+		result = PointStamped(header=face.header, point=Point((face.size **-0.4) * 0.3, -0.75*(face.center.x - 0.5), -1*(face.center.y - 0.5)))
 		# rospy.loginfo(face)
 		result.header.frame_id = robot_api.Head.EYES_FRAME
 		return result
 
+	def _swag(self, msg):
+		if (self.lock.acquire(blocking=False)):
+			self._servoFace(msg)
+			self.lock.release()
+
 	def _updateLights(self, msg):
-		lights = robot_api.Lights()
 		num_faces = len(msg.faces)
 		rospy.loginfo(num_faces)
 		if num_faces == 0:
-			lights.put_pixels([(255,0,0)]*15)
+			self.lights.put_pixels([(255,0,0)]*15)
 		else:
 			confidence = msg.faces[0].confidence
 			pixels = [(0,255,0)]*min(num_faces,15)
 			if num_faces < 15:
 				for x in range(15-num_faces):
 					pixels.append((0,0,255))
-			lights.put_pixels(pixels)
+			self.lights.put_pixels(pixels)
 					
 	def _servoFace(self, msg):
-		head = robot_api.Head()
 		faces = msg.faces
 		confident_face = None
 		for face in faces:
@@ -96,21 +97,15 @@ class FaceChange(object):
 		if self.isCentered(confident_face):
 			return
 		point = self.getFaceLocation(confident_face)
-		# rospy.loginfo(point)
-		head.look_at(point, False)		
+		self.head.look_at(point, True)
+		# self.base.go_forward(point.point.x - 1)
 
 	def callback(self, msg):
 		self._updateLights(msg.faces)
-		self._servoFace(msg.faces)
-		self.publishMostConfidentFacePosition(msg.faces)
-		self.publishNumFaces(msg.faces) # this should always go last
-
-	def connect_callback(self, msg):
-		self._updateLights(msg)
-		self._servoFace(msg)
-		self.publishMostConfidentFacePosition(msg)
-		self.publishNumFaces(msg) # this should always go last
-
+		t1 = Thread(target=self._swag, args=[msg.faces])
+		t1.start()
+		# self.publishMostConfidentFacePosition(msg.faces)
+		# self.publishNumFaces(msg.faces) # this should always go last
                 
 def main():
 	rospy.init_node('face_detection_demo')
@@ -118,11 +113,10 @@ def main():
 	face_change = FaceChange()
 
 	# Activate Vision API's Face Detector
-	vision.activate("face_detector", config={"fps": 6})
-	# sleep(0.5)
+	vision.activate("face_detector", config={"fps": 3})
+	rospy.sleep(0.5)
 	vision.wait_until_ready(timeout=10)
-	# vision.face_change.connect(face_change.connect_callback)
-	vision.req_mods([["activate", "face_detector", {"fps": 6}, {"skip_ratio": 3}]], [])
+	vision.req_mods([["activate", "face_detector", {"fps": 3}, {"skip_ratio": 3}]], [])
 
 	# Trigger callback
 	rospy.Subscriber('vision/results', FrameResults, face_change.callback) 
