@@ -35,7 +35,7 @@ class Base(object):
     """
 
     def __init__(self):
-        self.pub = rospy.Publisher('/mobile_base/command/velocity', Twist, queue_size=10)
+        self.pub = rospy.Publisher('/mobile_base/commands/velocity', Twist, queue_size=10)
         self._odom_sub = rospy.Subscriber('odom', nav_msgs.msg.Odometry, callback=self._odom_callback)
         self.latest_odom = None
         self.latest_pose = None
