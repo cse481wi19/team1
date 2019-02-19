@@ -24,6 +24,7 @@ class FaceCommand(object):
 		self.expressions = robot_api.Expressions()
 		self.follow = False			# Indicates if Luci should follow someone
 		self.face_exists = False	# Indicates if Luci confidently detects a face
+		self.face_detection_counter = 0
 		rospy.sleep(0.5)			# Adding sleep to make sure there's enough to initialize other objects
 
 	# Publishes the number of faces found in a frame.
@@ -81,31 +82,20 @@ class FaceCommand(object):
 		num_faces = len(msg.faces)
 		rospy.loginfo(num_faces)
 
-		if num_faces == 0:
-			if (self.face_exists == True):
+		if (num_faces == 0):
+			if(self.face_detection_counter == 0 and self.face_exists == True):
 				self.expressions.be_sad()
-			self.face_exists = False
+				self.face_exists = False
+			if(self.face_detection_counter > -5):
+				self.face_detection_counter -= 1
 		else:
-			if (self.face_exists == False):
+			if(self.face_detection_counter == 0):
 				self.expressions.be_happy()
-			self.face_exists = True
+				self.face_exists = True
+			if(self.face_detection_counter < 5):
+				self.face_detection_counter += 1
 
-		'''if num_faces == 0:
-			if (self.face_exists >= 10):
-				# Not seeing the face anymore... SAD!
-				rospy.loginfo('SAD')
-				self.expressions.be_sad()
-				self.face_exists = 0
-			else:
-				rospy.loginfo('#2' + str(self.face_exists))
-				self.face_exists -= 1
-		else:
-			if (self.face_exists == 0):
-				# Detecting a face for the first time
-				rospy.loginfo('HAPPY')
-				self.expressions.be_happy()
-			self.face_exists += 1
-			rospy.loginfo('#4' + str(self.face_exists))'''
+
 
 	# TODO Add logic to turn base when searching for face
 	def _servoFace(self, msg):
