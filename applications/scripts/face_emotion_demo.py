@@ -73,25 +73,43 @@ class FaceCommand(object):
 	# Acquiring a lock to make sure another thread isn't currently moving the head at the same time
 	def _swag(self, msg):
 		if (self.lock.acquire(blocking=False)):
+			self._updateFace(msg)
 			self._servoFace(msg)
 			self.lock.release()
 
-	def _updateLights(self, msg):
+	def _updateFace(self, msg):
 		num_faces = len(msg.faces)
+		rospy.loginfo(num_faces)
+
 		if num_faces == 0:
-			self.lights.put_pixels([(255,0,0)]*15)
 			if (self.face_exists == True):
-				# Not seeing the face anymore... SAD!
 				self.expressions.be_sad()
 			self.face_exists = False
 		else:
 			if (self.face_exists == False):
-				# Detecting a face for the first time
 				self.expressions.be_happy()
 			self.face_exists = True
 
+		'''if num_faces == 0:
+			if (self.face_exists >= 10):
+				# Not seeing the face anymore... SAD!
+				rospy.loginfo('SAD')
+				self.expressions.be_sad()
+				self.face_exists = 0
+			else:
+				rospy.loginfo('#2' + str(self.face_exists))
+				self.face_exists -= 1
+		else:
+			if (self.face_exists == 0):
+				# Detecting a face for the first time
+				rospy.loginfo('HAPPY')
+				self.expressions.be_happy()
+			self.face_exists += 1
+			rospy.loginfo('#4' + str(self.face_exists))'''
+
 	# TODO Add logic to turn base when searching for face
 	def _servoFace(self, msg):
+		#self.lights.put_pixels([(255,0,0)]*15)
 		faces = msg.faces
 
 		# Find the most confident face
@@ -114,13 +132,16 @@ class FaceCommand(object):
 		self.head.look_at(point, False)
 
 	def callback(self, msg):
-		self._updateLights(msg.faces)
+		# self._updateFace(msg.faces)
 		t1 = Thread(target=self._swag, args=[msg.faces])
 		t1.start()
 
 	# Custom callback for command line prompt that publishes boolean to 'vision/commands/follow'
 	def command_callback(self, msg):
-		self.follow = msg
+		if msg is 0:
+			self.follow = False
+		else:
+			self.follow = True
 		self.expressions.nod_head()
                 
 def main():
@@ -137,7 +158,7 @@ def main():
 
 	# Trigger callback
 	rospy.Subscriber('vision/results', FrameResults, face_command.callback)
-	rospy.Subscriber('vision/commands/follow', bool, face_command.command_callback)
+	rospy.Subscriber('vision/commands/follow', Int8, face_command.command_callback)
 	rospy.spin()
 
 if __name__ == '__main__':
