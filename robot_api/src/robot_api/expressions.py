@@ -44,9 +44,11 @@ class Expressions(object):
         sound = self._sound_source.play('/home/team1/catkin_ws/src/sound_effects/happy_mario.wav')
         rospy.sleep(1)
         self._sound_source.cancel(sound)
-
         rospy.sleep(2)
-        self.be_neutral()
+
+        # Reset attributes except eyes
+        self.reset_head()
+        self.reset_lights()
     
     def be_sad(self):
          # Sad eyes
@@ -62,15 +64,24 @@ class Expressions(object):
         sound = self._sound_source.play('/home/team1/catkin_ws/src/sound_effects/sad_mario.wav')
         rospy.sleep(1)
         self._sound_source.cancel(sound)
-
         rospy.sleep(2)
-        self.be_neutral()
+
+        # Reset attributes except eyes
+        self.reset_head()
+        self.reset_lights()
 
     def be_neutral(self):
-        # Neutral head position and eyes
+        self.reset_head()
+        self.reset_eyes()
+        self.reset_lights()
+
+    def reset_head(self):
         self._head.pan_and_tilt(0, 0, 0.05)
+
+    def reset_eyes(self):
         self._head.eyes_to(0.05)
 
+    def reset_lights(self):
         # No Lights
         self._lights.put_pixels(
             [(0, 0, 0)] * 15
