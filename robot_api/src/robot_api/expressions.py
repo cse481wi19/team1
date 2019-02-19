@@ -32,7 +32,7 @@ class Expressions(object):
     
     def be_happy(self):
         # Happy eyes
-        #self._head.eyes_to(-0.16)
+        self._head.eyes_to(-0.16)
 
         # Yellow Lights
         self._lights.put_pixels(
