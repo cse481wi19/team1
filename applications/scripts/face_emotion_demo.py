@@ -128,11 +128,12 @@ class FaceCommand(object):
 
 	# Custom callback for command line prompt that publishes boolean to 'vision/commands/follow'
 	def command_callback(self, msg):
-		if msg is 0:
+		if msg.data == 0:
 			self.follow = False
 		else:
 			self.follow = True
 		self.expressions.nod_head()
+		self.face_exists = False
                 
 def main():
 	rospy.init_node('face_emotion_demo')
