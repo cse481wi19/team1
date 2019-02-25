@@ -1,0 +1,19 @@
+#JSGF V1.0;
+
+/**
+ * Luci grammar for basic communication
+ */
+
+grammar luci;
+
+public <greeting> = <salutation> LUCI;
+
+public <feeling> = I AM <feelings>;
+
+public <response> = <utterance>;
+
+<salutation> = HI | HELLO | HEY;
+
+<feelings> = HAPPY | SAD | HUNGRY;
+
+<utterance> = YES | NO | MAYBE;
