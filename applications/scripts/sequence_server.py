@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 
 from std_msgs.msg import Header
+from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Pose, PoseStamped, Point, Quaternion
 from ar_track_alvar_msgs.msg import AlvarMarkers
 import robot_api
@@ -25,10 +26,10 @@ class ArTagReader(object):
 
     def getTagPose(self, tag):
         for marker in self.markers:
-            if marker.id == tag:
+            if marker.id is int(tag):
                 out = PoseStamped()
                 out.header = marker.header
-                out.pose = marker.pose
+                out.pose = marker.pose.pose
                 return out
         return None
 
@@ -37,7 +38,7 @@ class SequenceServer(object):
         # Setup
         self.tag_reader = ArTagReader()
         self.ar_sub = rospy.Subscriber("ar_pose_marker", AlvarMarkers, callback=self.tag_reader.callback)
-        self.odom_sub = rospy.Subscriber("odom", PoseStamped, callback=self.tag_reader.callback)
+        self.odom_sub = rospy.Subscriber("odom", Odometry, callback=self.saveCurrentPose)
         self.move_pub = rospy.Publisher('move_base_simple/goal', PoseStamped, queue_size=10)
         self.head = robot_api.Head()
         self.base = robot_api.Base()
@@ -46,14 +47,17 @@ class SequenceServer(object):
         self.currentPoseStamped = None
         self.store = SequenceStore()
         self.command_sequence = []
-        while (len(self.tag_reader.markers) == 0): pass
-
+        while len(self.tag_reader.markers) is 0: pass
+        while self.currentPoseStamped is None: pass
         # Set current tag for saving (first one we see by default)
         self.in_progress_seq_tag = self.tag_reader.markers[0].id
 
     # Callbacks
     def saveCurrentPose(self, msg):
-        self.currentPoseStamped = msg
+        ps = PoseStamped()
+        ps.header = msg.header
+        ps.pose = msg.pose.pose
+        self.currentPoseStamped = ps
 
     # Sequence Creation API
     def saveSequence(self, name):
@@ -69,7 +73,7 @@ class SequenceServer(object):
         print("Unknown Tag!")
 
     def addCurrentPositionToSequence(self):
-        # We know everything is in base_link, so just save the relative position to the tag
+        # We know everything is in odom, so just save the relative position to the tag
         currPoseStamped = self.currentPoseStamped
         tagPoseStamped = self.tag_reader.getTagPose(self.in_progress_seq_tag)
         if not tagPoseStamped:
@@ -131,7 +135,7 @@ class SequenceServer(object):
         dest_pose = getPoseFromOffset(tag_pose.pose, offset)
         h = Header()
         h.stamp = rospy.Time.now()
-        h.frame_id = "base_link"
+        h.frame_id = "odom"
 
         # Create goal pose
         dest_ps = PoseStamped()
@@ -153,15 +157,15 @@ class SequenceServer(object):
         self.head.look_at(tag_pose)
 
     def __face_exp(self, expression):
-        if expression is "nod_head":
+        if expression == "nod_head":
             self.expressions.nod_head()
-        elif expression is "shake_head":
+        elif expression == "shake_head":
             self.expressions.shake_head()
-        elif expression is "happy":
+        elif expression == "happy":
             self.expressions.be_happy()
-        elif expression is "sad":
+        elif expression == "sad":
             self.expressions.be_sad()
-        elif expression is "neutral":
+        elif expression == "neutral":
             self.expressions.be_neutral()
         else:
             print("Invalid stored facial expression: " + str(expression))
@@ -180,9 +184,9 @@ def poseEqual(pose, pose2):
     posX = floor(pose.position.x) is floor(pose2.position.x)
     posY = floor(pose.position.y) is floor(pose2.position.x)
     posZ = floor(pose.position.z) is floor(pose2.position.x)
-    orienX = floor(pose.orientation.x) is floor(pose2.orientation.x)
-    orienY = floor(pose.orientation.y) is floor(pose2.orientation.x)
-    orienZ = floor(pose.orientation.z) is floor(pose2.orientation.x)
+    orienX = True #floor(pose.orientation.x) is floor(pose2.orientation.x)
+    orienY = True #floor(pose.orientation.y) is floor(pose2.orientation.x)
+    orienZ = True #floor(pose.orientation.z) is floor(pose2.orientation.x)
     return posX and posY and posZ and orienX and orienY and orienZ
 
 def getTransformFromPose(pose):
@@ -211,14 +215,13 @@ def getPoseFromOffset(base_pose, offset_pose):
 
 class SequenceStore(object):
     def __init__(self):
-        self.store = {}
-        self.store.sequences = {}
+        self.store = {"sequences": {}}
 
     def saveSequence(self, name, sequence):
-        self.store.sequences[name] = sequence
+        self.store["sequences"][name] = sequence
 
     def getSequence(self, name):
-        return self.store.sequences[name]
+        return self.store["sequences"][name]
 
 def print_usage():
     print('Usage:')
@@ -238,24 +241,26 @@ def print_usage():
     print('                move       <forward/backward> <length>')
 
 def main():
+    rospy.init_node("SCOOP_DI_WHOOP")
+    wait_for_time()
     ss =  SequenceServer()
     while(True):
-        input = raw_input("> ").split("")
+        input = raw_input("> ").split(" ")
         cmd = input[0]
-        if cmd is "add":
+        if cmd == "add":
             if len(input) < 2:
                 print("what should I add?")
                 return
-            if input[1] is 'expression':
+            if input[1] == 'expression':
                 if len(input) is not 3:
                     print("What expression?")
                     return
                 ss.addFacialExpressionToSequence(input[2])
-            elif input[1] is 'goto':
+            elif input[1] == 'goto':
                 ss.addCurrentPositionToSequence()
-            elif input[1] is 'lookAt':
+            elif input[1] == 'lookAt':
                 ss.addLookAtARTagToSequence()
-            elif input[1] is 'rotate':
+            elif input[1] == 'rotate':
                 if len(input) is not 3:
                     print("Rotate by how much?")
                     return
@@ -263,42 +268,42 @@ def main():
             elif input[1] is 'move':
                 if len(input) is not 4:
                     print("Correct args: <direction> <length>")
-                ss.addMovementToSequence(input[2], input[3])
+                ss.addMovementToSequence(input[2], int(input[3]))
             else:
                 print('Can\'t add ' + str(input[1]))
-        elif cmd is "list":
+        elif cmd == "list":
             if len(input) is not 2:
                 print("what should I list?")
                 return
-            if input[1] is "tags":
+            if input[1] == "tags":
                 for tag in ss.tag_reader.markers:
                     print('   ' + str(tag.id))
-            elif input[1] is "sequences":
-                for name in ss.store.store.sequences:
+            elif input[1] == "sequences":
+                for name in ss.store.store["sequences"]:
                     print('   ' + name)
-            elif input[1] is "seq_commands":
+            elif input[1] == "seq_commands":
                 for item in ss.command_sequence:
                     print(item)
             else:
                 print('Can\'t list ' + str(input[1]))
-        elif cmd is "saveseq":
+        elif cmd == "saveseq":
             if len(input) is not 2:
                 print("need the sequence name")
                 return
             ss.saveSequence(input[1])
-        elif cmd is "runseq":
+        elif cmd == "runseq":
             if len(input) is not 2:
                 print("need the sequence name")
                 return
             ss.executeSequence(input[1])
-        elif cmd is "reset":
+        elif cmd == "reset":
             ss.emptySequence()
-        elif cmd is "settag":
+        elif cmd == "settag":
             if len(input) is not 2:
                 print("need the tag name")
                 return
             ss.setin_progress_seq_tag(input[1])
-        elif cmd is "help":
+        elif cmd == "help":
             print_usage()
         else:
             print("Invalid sequence command:" + str(cmd))
