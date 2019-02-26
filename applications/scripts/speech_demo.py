@@ -23,8 +23,8 @@ class LuciControl(object):
         self.class_lm = 'corpus/luci.lm'
         self.dict = 'corpus/luci.dic'
 
-        # TODO: Set this file from "/usr/share/pocketsphinx/model/hmm/en_US/hub4wsj_sc_8k"
-        # self.hmm = hmm
+        # Set this file from "/usr/share/pocketsphinx/model/hmm/en_US/hub4wsj_sc_8k"
+        self.hmm = 'corpus/mdef'
 
         # All params satisfied. Starting recognizer
         self.start_recognizer()
@@ -136,7 +136,7 @@ class LuciControl(object):
         command executed after Ctrl+C is pressed
         """
         rospy.loginfo("Stop LuciControl")
-        self.pub_move.publish(Twist())
+        # self.pub_move.publish(Twist())
         rospy.sleep(1)
 
 if __name__ == "__main__":
