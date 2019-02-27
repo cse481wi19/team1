@@ -140,7 +140,6 @@ class LuciControl(object):
 
     def parse_results(self, detected_words): #pylint: disable=too-many-branches
         """Function to perform action (change colors/expression) on detected word"""
-
         if self._isDetected(detected_words, ['HI', 'HELLO', 'HEY', 'LUCI']):
             self._greeting()
         elif self._isDetected(detected_words, ['NURSE', 'HELP', 'SAD', 'MAD']):       
