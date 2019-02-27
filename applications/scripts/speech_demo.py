@@ -74,24 +74,44 @@ class LuciControl(object):
         rospy.loginfo("Received a Greeting.")
         # self.expressions.be_happy()
         self.lights.put_pixels([(255, 255, 0)]*15) # YELLOW
-
+        engine = pyttsx.init()
+        engine.setProperty('voice', 'english+f3')
+        message = "hello how are you"
+        engine.say(message)
+        engine.runAndWait()
+ 
     def _alert(self):
         """Function to alert nurse upon distress words"""
         rospy.loginfo("Received an Alert.")
         # self.expressions.be_sad()
         self.lights.put_pixels([(255,0,0)]*15) # RED
+        engine = pyttsx.init()
+        engine.setProperty('voice', 'english+f3')
+        message = "calling a nurse"
+        engine.say(message)
+        engine.runAndWait()
 
     def _show_agreement(self):
         """Function to communicate agreement with given words"""
         rospy.loginfo("Received an Agreement.")
         # self.expressions.nod_head()
         self.lights.put_pixels([(102,255,102)]*15) # GREEN
+        engine = pyttsx.init()
+        engine.setProperty('voice', 'english+f3')
+        message = "yes"
+        engine.say(message)
+        engine.runAndWait()
 
     def _neutral(self):
         """Function to neutrally respond to given words"""
         rospy.loginfo("Received a Neutral.")
         # self.expressions.be_neutral()
-        self.lights.put_pixels([(0, 0, 255)]*15) # BLUE   
+        self.lights.put_pixels([(0, 0, 255)]*15) # BLUE
+        engine = pyttsx.init()
+        engine.setProperty('voice', 'english+f3')
+        message = "okay"
+        engine.say(message)
+        engine.runAndWait()
 
     def _isDetected(self, detected_words, words):
         """Function to check if any of the given words are detected"""
@@ -150,25 +170,6 @@ class LuciControl(object):
                     # NOTE Consider removing grammar_data topic and calling parse_results directly 
                     self.pub_grammar.publish(self.decoder.hyp().hypstr)
                 self.decoder.start_utt()
-
-    def handle_output(data):
-        """Map out grammar recognized commands in speech to terminal commands"""
-
-        rospy.loginfo("Handling output for : " + data.data)
-        engine = pyttsx.init()
-        engine.setProperty('voice', 'english+f3')
-
-        if "i want to play bingo" in data.data.lower():
-            message = "bingo is at seven"
-        elif "where is the nurse" in data.data.lower():
-           message = 'I will go find a nurse'
-        elif "what time is it" in data.data.lower():
-            message = 'It is ' + datetime.datetime.now().strftime("%H:%M") + ' hours'
-        elif "good night luci" in data.data.lower():
-            message = 'good night!'
-
-        engine.say(message)
-        engine.runAndWait()
 
     def shutdown(self):
         """
