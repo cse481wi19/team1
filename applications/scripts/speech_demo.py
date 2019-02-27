@@ -84,19 +84,19 @@ class LuciControl(object):
     def _show_agreement(self):
         """Function to communicate agreement with given words"""
         rospy.loginfo("Received an Agreement.")
-        self.expressions.nod_head()
+        # self.expressions.nod_head()
         self.lights.put_pixels([(102,255,102)]*15) # GREEN
 
     def _neutral(self):
         """Function to neutrally respond to given words"""
         rospy.loginfo("Received a Neutral.")
-        self.expressions.be_neutral()
+        # self.expressions.be_neutral()
         self.lights.put_pixels([(0, 0, 255)]*15) # BLUE   
 
     def _isDetected(self, detected_words, words):
         """Function to check if any of the given words are detected"""
         for word in words:
-            if detected_words.data.find(word):
+            if word in detected_words.data:
                 return True
         return False
 
@@ -104,11 +104,11 @@ class LuciControl(object):
         """Function to perform action (change colors/expression) on detected word"""
 
         rospy.loginfo("Parsing results for: " + detected_words.data)
-        if self._isDetected(detected_words, ["HI", "HELLO", "HEY", "LUCI"]):
+        if self._isDetected(detected_words, ['HI', 'HELLO', 'HEY', 'LUCI']):
             self._greeting()
-        elif self._isDetected(detected_words, ["NURSE", "HELP", "SAD", "MAD"]):       
+        elif self._isDetected(detected_words, ['NURSE', 'HELP', 'SAD', 'MAD']):       
             self._alert()
-        elif self._isDetected(detected_words, ["FRANK SINATRA", "BINGO", "FRIEND", "WEATHER"]):
+        elif self._isDetected(detected_words, ['FRANK SINATRA', 'BINGO', 'FRIEND', 'WEATHER']):
             self._show_agreement()
         else:
             self._neutral()
