@@ -1,0 +1,37 @@
+#JSGF V1.0;
+
+/**
+ * Luci grammar for basic communication
+ */
+
+grammar luci;
+
+public <greeting> = <salutation> LUCI;
+
+public <feeling> = I AM <feelings>;
+
+public <exclamation> = I WON AT BINGO | YUMMY | HELP | LUCI STOP;
+
+public <getUP> = I CANNOT GET UP;
+
+public <wants> = I (WANT | WOULD LIKE | NEED) TO (GO FOR A WALK | TALK TO MY FAMILY | LISTEN TO SOME MUSIC | TALK TO MY FRIEND | GO HOME | GO);
+
+public <thanks> = THANKS | THANK YOU | THANK YOU LUCI;
+
+public <music> = YES PLAY SOME FRANK SINATRA;
+
+public <statement> =  NO THAT IS OKAY | THAT IS OKAY | <utterance>;
+
+public <question> = <guess> | <food> | <time> | <bingo> | <outside> | <weather> | <nurse> | <do>
+
+<guess> = LUCI GUESS WHAT
+<food> = WHAT IS FOR (BREAKFAST | LUNCH | DINNER) TODAY
+<time> = WHAT (TIME | DAY) IS IT
+<bingo> = IS THERE BINGO TONIGHT | WHEN IS BINGO NIGHT
+<outside> = CAN I GO OUTSIDE TODAY
+<weather> = WHAT IS THE WEATHER LIKE TODAY | WHAT IS THE WEATHER
+<nurse> = CAN I TALK TO A NURSE
+<do> = DO I (HAVE ANY SOCIAL EVENTS TODAY | NEED TO TAKE ANY MEDICINE TODAY)
+<salutation> = HI | HELLO | HEY | GOOD (MORNING | NIGHT);
+<feelings> = HAPPY | SAD | HUNGRY;
+<utterance> = OKAY | YES | NO | MAYBE | NOT NOW | MAYBE LATER;
