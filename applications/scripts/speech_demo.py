@@ -42,6 +42,7 @@ class LuciControl(object):
         # Intializing robot API
         self.lights = robot_api.Lights()
         self.expressions = robot_api.Expressions()
+        self.sound_source = robot_api.SoundSource('Luci')
 
         # Initialize alsa audio PCM: (Using 16000Hz, 16 Bit Encoding, 1 Channel)
         self.inp = alsaaudio.PCM(alsaaudio.PCM_CAPTURE, alsaaudio.PCM_NONBLOCK)
@@ -72,46 +73,63 @@ class LuciControl(object):
     def _greeting(self):
         """Function to greet people upon happy words"""
         rospy.loginfo("Received a Greeting.")
-        # self.expressions.be_happy()
+        self.expressions.be_happy()
         self.lights.put_pixels([(255, 255, 0)]*15) # YELLOW
-        engine = pyttsx.init()
-        engine.setProperty('voice', 'english+f3')
-        message = "hello how are you"
-        engine.say(message)
-        engine.runAndWait()
+        # engine = pyttsx.init()
+        # engine.setProperty('voice', 'english+f1')
+        # message = "hello how are you"
+        # engine.say(message)
+        # engine.runAndWait()
+        sound = self.sound_source.play('/home/team1/catkin_ws/src/sound_effects/interactions/1_1.wav')
+        rospy.sleep(1)
+        self.sound_source.cancel(sound)
+        rospy.sleep(2)
  
     def _alert(self):
         """Function to alert nurse upon distress words"""
         rospy.loginfo("Received an Alert.")
-        # self.expressions.be_sad()
+        self.expressions.be_sad()
         self.lights.put_pixels([(255,0,0)]*15) # RED
-        engine = pyttsx.init()
-        engine.setProperty('voice', 'english+f3')
-        message = "calling a nurse"
-        engine.say(message)
-        engine.runAndWait()
+        # engine = pyttsx.init()
+        # engine.setProperty('voice', 'english+f1')
+        # message = "calling a nurse"
+        # engine.say(message)
+        # engine.runAndWait()
+        sound = self.sound_source.play('/home/team1/catkin_ws/src/sound_effects/interactions/3_2.wav')
+        rospy.sleep(1)
+        self.sound_source.cancel(sound)
+        rospy.sleep(2)
 
     def _show_agreement(self):
         """Function to communicate agreement with given words"""
         rospy.loginfo("Received an Agreement.")
-        # self.expressions.nod_head()
+        self.expressions.nod_head()
         self.lights.put_pixels([(102,255,102)]*15) # GREEN
-        engine = pyttsx.init()
-        engine.setProperty('voice', 'english+f3')
-        message = "yes"
-        engine.say(message)
-        engine.runAndWait()
+        # engine = pyttsx.init()
+        # engine.setProperty('voice', 'english+f1')
+        # message = "yes"
+        # engine.say(message)
+        # engine.runAndWait()
+        sound = self.sound_source.play('/home/team1/catkin_ws/src/sound_effects/interactions/2_1.wav')
+        rospy.sleep(1)
+        self.sound_source.cancel(sound)
+        rospy.sleep(2)
+
 
     def _neutral(self):
         """Function to neutrally respond to given words"""
         rospy.loginfo("Received a Neutral.")
-        # self.expressions.be_neutral()
+        self.expressions.be_neutral()
         self.lights.put_pixels([(0, 0, 255)]*15) # BLUE
-        engine = pyttsx.init()
-        engine.setProperty('voice', 'english+f3')
-        message = "okay"
-        engine.say(message)
-        engine.runAndWait()
+        # engine = pyttsx.init()
+        # engine.setProperty('voice', 'english+f1')
+        # message = "okay"
+        # engine.say(message)
+        # engine.runAndWait()
+        sound = self.sound_source.play('/home/team1/catkin_ws/src/sound_effects/interactions/5_1.wav')
+        rospy.sleep(1)
+        self.sound_source.cancel(sound)
+        rospy.sleep(2)
 
     def _isDetected(self, detected_words, words):
         """Function to check if any of the given words are detected"""
@@ -123,7 +141,6 @@ class LuciControl(object):
     def parse_results(self, detected_words): #pylint: disable=too-many-branches
         """Function to perform action (change colors/expression) on detected word"""
 
-        rospy.loginfo("Parsing results for: " + detected_words.data)
         if self._isDetected(detected_words, ['HI', 'HELLO', 'HEY', 'LUCI']):
             self._greeting()
         elif self._isDetected(detected_words, ['NURSE', 'HELP', 'SAD', 'MAD']):       
