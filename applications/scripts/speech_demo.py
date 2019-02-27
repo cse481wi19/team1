@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import time
 import rospy
 import robot_api
 import alsaaudio 
@@ -24,16 +25,19 @@ class LuciControl(object):
         # Create a publisher for the grammar data and raw audio
         self.pub_grammar = rospy.Publisher("grammar_data", String, queue_size=10)
         self.pub_audio = rospy.Publisher("raw_audio", String, queue_size=10)
+   
+        # Subscribe to grammar data output
+        rospy.Subscriber("grammar_data", String, self.parse_results)
 
         # Set language model and dictionary
         self.class_lm = 'corpus/luci.lm'
         self.dict = 'corpus/luci.dic'
 
+        # Used in process_audio (from asr_test.py)
+        self.in_speech_bf = False
+
         # Set this file from "/usr/share/pocketsphinx/model/hmm/en_US/hub4wsj_sc_8k"
         self.hmm = 'corpus/hmm'
-
-        # All params satisfied. Starting recognizer
-        self.start_recognizer()
 
         # Intializing robot API
         self.lights = robot_api.Lights()
@@ -46,17 +50,19 @@ class LuciControl(object):
         self.inp.setformat(alsaaudio.PCM_FORMAT_S16_LE)
         self.inp.setperiodsize(160)
 
-        # Subscribe to grammar data output
-        rospy.Subscriber("grammar_data", String, self.parse_results)
-
-        # Spin up new thread to listen for raw audio input
-        t1 = Thread(target=self._listen)
+        # All params satisfied. Starting recognizer
+        t1 = Thread(target=self.start_recognizer)
         t1.start()
+
+        # # Spin up new thread to listen for raw audio input
+        t2 = Thread(target=self._listen)
+        t2.start()
 
         rospy.spin()
 
     def _listen(self):
         """Function to loop indefinitely while listening for audio"""
+        rospy.loginfo("Listening.......")
         while True:
             l, data = self.inp.read()
             if l:
@@ -66,13 +72,13 @@ class LuciControl(object):
     def _greeting(self):
         """Function to greet people upon happy words"""
         rospy.loginfo("Received a Greeting.")
-        self.expressions.be_happy()
+        # self.expressions.be_happy()
         self.lights.put_pixels([(255, 255, 0)]*15) # YELLOW
 
     def _alert(self):
         """Function to alert nurse upon distress words"""
         rospy.loginfo("Received an Alert.")
-        self.expressions.be_sad()
+        # self.expressions.be_sad()
         self.lights.put_pixels([(255,0,0)]*15) # RED
 
     def _show_agreement(self):
@@ -88,6 +94,7 @@ class LuciControl(object):
         self.lights.put_pixels([(0, 0, 255)]*15) # BLUE   
 
     def _isDetected(self, detected_words, words):
+        """Function to check if any of the given words are detected"""
         for word in words:
             if detected_words.data.find(word):
                 return True
@@ -132,7 +139,6 @@ class LuciControl(object):
     def process_audio(self, data):
         """Audio processing based on decoder config."""
         
-        rospy.loginfo("Processing audio data: " + data)
         # Check if input audio has ended
         self.decoder.process_raw(data.data, False, False)
         if self.decoder.get_in_speech() != self.in_speech_bf:
