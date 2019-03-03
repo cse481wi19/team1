@@ -1,0 +1,43 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <script type="text/javascript" src="http://static.robotwebtools.org/threejs/current/three.min.js"></script>
+    <script type="text/javascript" src="http://static.robotwebtools.org/EventEmitter2/current/eventemitter2.min.js"></script>
+    <script type="text/javascript" src="http://static.robotwebtools.org/ros3djs/current/ColladaLoader.js"></script>
+    <script type="text/javascript" src="https://static.robotwebtools.org/threejs/current/STLLoader.js"></script>
+    <script type="text/javascript" src="http://static.robotwebtools.org/roslibjs/current/roslib.min.js"></script>
+    <script type="text/javascript" src="http://static.robotwebtools.org/ros3djs/current/ros3d.min.js"></script>
+    <script type="text/javascript" src="js/robot.js"></script>
+    <script type="text/javascript" src="js/reminder_ui.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="css/index.css" />
+    <link href="https://fonts.googleapis.com/css?family=Pacifico|Roboto" rel="stylesheet">
+  </head>
+
+  <div id="header">
+    <div class="titleText">
+      <div class="luciTitle">Luci</div> - Caretaker Console
+      <img src="static/kurirobot.png" class="kuriImg" />
+    </div>
+  </div>
+
+  <div id="forms">
+    <form onsubmit="createReminderUI(); return false">
+      Create Reminder: <input type="text">
+      With Message: <input type="text">
+      At Time: <input type="time">
+      <input type="submit">
+    </form>
+
+    <form onsubmit="deleteReminderUI(); return false">
+      Delete Reminder: <input type="text">
+      <input type="submit">
+    </form>
+
+    <form onsubmit="remindUserOf(); return false">
+      Remind User of: <input type="text">
+      <input type="submit">
+    </form>
+  </div>
+  <div id="reminderList"></div>
+</html>
