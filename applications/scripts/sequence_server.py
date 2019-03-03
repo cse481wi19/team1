@@ -9,6 +9,10 @@ import rospy
 import tf
 import numpy as np
 from math import floor
+import sensor_msgs.msg._CameraInfo
+from threading import Thread, RLock
+import actionlib
+from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 
 def wait_for_time():
     """Wait for simulated time to begin.
@@ -39,7 +43,8 @@ class SequenceServer(object):
         self.tag_reader = ArTagReader()
         self.ar_sub = rospy.Subscriber("ar_pose_marker", AlvarMarkers, callback=self.tag_reader.callback)
         self.odom_sub = rospy.Subscriber("odom", Odometry, callback=self.saveCurrentPose)
-        self.move_pub = rospy.Publisher('move_base_simple/goal', PoseStamped, queue_size=10)
+        # self.move_pub = rospy.Publisher('move_base_simple/goal', PoseStamped, queue_size=10)
+        self.ac = actionlib.SimpleActionClient('move_base', MoveBaseAction)
         self.head = robot_api.Head()
         self.base = robot_api.Base()
         self.expressions = robot_api.Expressions()
@@ -47,7 +52,11 @@ class SequenceServer(object):
         self.currentPoseStamped = None
         self.store = SequenceStore()
         self.command_sequence = []
+        print("Waiting for ActionClient Server...")
+        self.ac.wait_for_server()  
+        print("Waiting for AR markers...")
         while len(self.tag_reader.markers) is 0: pass
+        print("Waiting to read current pose...")
         while self.currentPoseStamped is None: pass
         # Set current tag for saving (first one we see by default)
         self.in_progress_seq_tag = self.tag_reader.markers[0].id
@@ -143,11 +152,15 @@ class SequenceServer(object):
         dest_ps.header = h
 
         # Publish goal to rviz
-        self.move_pub.publish(dest_ps)
+        goal = MoveBaseGoal()
+        goal.target_pose = dest_ps
+        self.ac.send_goal(goal)
 
         # Wait for move completion
-        while not poseEqual(self.currentPoseStamped.pose, dest_pose): pass
-        rospy.sleep(1)
+        self.ac.wait_for_result()
+        
+        #while not poseEqual(self.currentPoseStamped.pose, dest_pose): pass
+        #rospy.sleep(1)
     
     def __look_at_tag(self, tag):
         tag_pose = self.tag_reader.getTagPose(tag)
@@ -184,6 +197,8 @@ def poseEqual(pose, pose2):
     posX = floor(pose.position.x) is floor(pose2.position.x)
     posY = floor(pose.position.y) is floor(pose2.position.x)
     posZ = floor(pose.position.z) is floor(pose2.position.x)
+    print(pose)
+    print(pose2)
     orienX = True #floor(pose.orientation.x) is floor(pose2.orientation.x)
     orienY = True #floor(pose.orientation.y) is floor(pose2.orientation.x)
     orienZ = True #floor(pose.orientation.z) is floor(pose2.orientation.x)
@@ -213,6 +228,34 @@ def getPoseFromOffset(base_pose, offset_pose):
     base_offset_transform = np.dot(base_transform, offset_pose)
     return getPoseFromTransform(base_offset_transform)
 
+def makeCamInfoPub():
+    cam_info_pub = rospy.Publisher('/upward_looking_camera/camera_info', sensor_msgs.msg.CameraInfo, queue_size=10)
+    msg = sensor_msgs.msg.CameraInfo()
+    msg.header = Header()
+    msg.header.seq = 0
+    msg.header.stamp = rospy.get_time()
+    msg.height = 480
+    msg.width = 640
+    msg.distortion_model = "plumb_bob"
+    msg.D = [0.0, 0.0, 0.0, 0.0, 0.0]
+    msg.K = [504.78216005824515, 0.0, 320.5, 0.0, 504.78216005824515, 240.5, 0.0, 0.0, 1.0]
+    msg.R = [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
+    msg.P = [504.78216005824515, 0.0, 320.5, -0.0, 0.0, 504.78216005824515, 240.5, 0.0, 0.0, 0.0, 1.0, 0.0]
+    msg.binning_x = 0
+    msg.binning_y = 0
+    msg.roi = sensor_msgs.msg.RegionOfInterest()
+    msg.roi.x_offset = 0
+    msg.roi.y_offset = 0
+    msg.roi.height = 0
+    msg.roi.width = 0
+    msg.roi.do_rectify = False
+
+    while True:
+        msg.header.seq = msg.header.seq + 1
+        msg.header.stamp = rospy.get_time()
+        cam_info_pub.publish(msg)
+        rospy.sleep(0.1)
+
 class SequenceStore(object):
     def __init__(self):
         self.store = {"sequences": {}}
@@ -241,8 +284,10 @@ def print_usage():
     print('                move       <forward/backward> <length>')
 
 def main():
-    rospy.init_node("SCOOP_DI_WHOOP")
+    rospy.init_node("Sequence_Server")
     wait_for_time()
+    t1 = Thread(target=makeCamInfoPub, args=[])
+    t1.start()
     ss =  SequenceServer()
     while(True):
         input = raw_input("> ").split(" ")

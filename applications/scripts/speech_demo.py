@@ -70,66 +70,38 @@ class LuciControl(object):
                 self.pub_audio.publish(data)
                 time.sleep(.001)
 
-    def _greeting(self):
-        """Function to greet people upon happy words"""
-        rospy.loginfo("Received a Greeting.")
-        self.expressions.be_happy()
-        self.lights.put_pixels([(255, 255, 0)]*15) # YELLOW
-        # engine = pyttsx.init()
-        # engine.setProperty('voice', 'english+f1')
-        # message = "hello how are you"
-        # engine.say(message)
-        # engine.runAndWait()
-        sound = self.sound_source.play('/home/team1/catkin_ws/src/sound_effects/interactions/1_1.wav')
-        rospy.sleep(1)
-        self.sound_source.cancel(sound)
-        rospy.sleep(2)
- 
-    def _alert(self):
-        """Function to alert nurse upon distress words"""
-        rospy.loginfo("Received an Alert.")
-        self.expressions.be_sad()
-        self.lights.put_pixels([(255,0,0)]*15) # RED
-        # engine = pyttsx.init()
-        # engine.setProperty('voice', 'english+f1')
-        # message = "calling a nurse"
-        # engine.say(message)
-        # engine.runAndWait()
-        sound = self.sound_source.play('/home/team1/catkin_ws/src/sound_effects/interactions/3_2.wav')
-        rospy.sleep(1)
-        self.sound_source.cancel(sound)
-        rospy.sleep(2)
-
-    def _show_agreement(self):
-        """Function to communicate agreement with given words"""
-        rospy.loginfo("Received an Agreement.")
-        self.expressions.nod_head()
-        self.lights.put_pixels([(102,255,102)]*15) # GREEN
-        # engine = pyttsx.init()
-        # engine.setProperty('voice', 'english+f1')
-        # message = "yes"
-        # engine.say(message)
-        # engine.runAndWait()
-        sound = self.sound_source.play('/home/team1/catkin_ws/src/sound_effects/interactions/2_1.wav')
-        rospy.sleep(1)
-        self.sound_source.cancel(sound)
-        rospy.sleep(2)
-
-
-    def _neutral(self):
+    def _play(self, file):
         """Function to neutrally respond to given words"""
-        rospy.loginfo("Received a Neutral.")
         self.expressions.be_neutral()
-        self.lights.put_pixels([(0, 0, 255)]*15) # BLUE
-        # engine = pyttsx.init()
-        # engine.setProperty('voice', 'english+f1')
-        # message = "okay"
-        # engine.say(message)
-        # engine.runAndWait()
-        sound = self.sound_source.play('/home/team1/catkin_ws/src/sound_effects/interactions/5_1.wav')
-        rospy.sleep(1)
+        sleep_time = 4
+        if (file[0] == '1'):
+            # Conversation 1 (about sunny weather)
+            self.lights.put_pixels([(255, 255, 7)]*15)  # YELLOW
+        elif (file[0] == '2'):
+            # Conversation 2 (about going to bingo night)
+            self.lights.put_pixels([(222, 7, 255)]*15)  # PURPLE
+        elif (file[0] == '3'):
+            # Conversation 3 (about alerting the nurse)
+            self.lights.put_pixels([(255, 7, 7)]*15)    # RED
+            if file[0] == '3_1':
+                sleep_time = 5
+            else:
+                sleep_time = 4
+        elif (file[0] == '4'):
+            # Conversation 4 (about going home)
+            self.lights.put_pixels([(0, 75, 173)]*15)   # BLUE
+            if file[0] == '4_3':
+                sleep_time = 30
+            else:
+                sleep_time = 4
+        elif (file[0] == '5'):
+            # Conversation 5 (about winning at bingo)
+            self.lights.put_pixels([(12, 255, 0)]*15)   # GREEN
+
+        sound = self.sound_source.play('/home/team1/catkin_ws/src/sound_effects/interactions/' + file)
+        rospy.sleep(sleep_time)
         self.sound_source.cancel(sound)
-        rospy.sleep(2)
+        rospy.sleep(1)
 
     def _isDetected(self, detected_words, words):
         """Function to check if any of the given words are detected"""
@@ -140,15 +112,30 @@ class LuciControl(object):
 
     def parse_results(self, detected_words): #pylint: disable=too-many-branches
         """Function to perform action (change colors/expression) on detected word"""
-
-        if self._isDetected(detected_words, ['HI', 'HELLO', 'HEY', 'LUCI']):
-            self._greeting()
-        elif self._isDetected(detected_words, ['NURSE', 'HELP', 'SAD', 'MAD']):       
-            self._alert()
-        elif self._isDetected(detected_words, ['FRANK SINATRA', 'BINGO', 'FRIEND', 'WEATHER']):
-            self._show_agreement()
-        else:
-            self._neutral()
+        if self._isDetected(detected_words, ['WEATHER']):
+            self._play('1_1.wav')
+        elif self._isDetected(detected_words, ['OUTSIDE']):
+            self._play('1_2.wav')
+        elif self._isDetected(detected_words, ['DAY']):
+            self._play('2_1.wav')
+        elif self._isDetected(detected_words, ['GREAT']):
+            self._play('2_2.wav')
+        elif self._isDetected(detected_words, ['HELP']):
+            self._play('3_1.wav')
+        elif self._isDetected(detected_words, ['CANNOT']):
+            self._play('3_2.wav')
+        elif self._isDetected(detected_words, ['HOME']):
+            self._play('4_1.wav')
+        elif self._isDetected(detected_words, ['NO']):
+            self._play('4_2.wav')
+        elif self._isDetected(detected_words, ['YES']):
+            self._play('4_3.wav')
+        elif self._isDetected(detected_words, ['GUESS']):
+            self._play('5_1.wav')
+        elif self._isDetected(detected_words, ['WON']):
+            self._play('5_2.wav')
+        # else:
+        #     self._play('0_1.wav')
 
     def start_recognizer(self):
         """Function to handle lm or grammar processing of audio."""
