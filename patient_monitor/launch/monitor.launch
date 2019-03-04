@@ -1,0 +1,20 @@
+<launch>
+  <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch" />
+
+  <!-- Transform Server -->
+  <node pkg="tf2_web_republisher" type="tf2_web_republisher" name="tf2_web_republisher" />
+
+  <!-- Robot Control -->
+  <node pkg="web_teleop" type="head_node.py" name="web_teleop_head" />
+  <node pkg="web_teleop" type="eyelids_node.py" name="web_teleop_eyelids" />
+
+  <!-- Vision -->
+  <node pkg="web_video_server" type="web_video_server" name="web_video_server">
+    <param name="port" value="8000" />
+  </node>
+
+    <!-- Interactive Markers -->
+  <include file="$(find map_annotator)/launch/map_annotator.launch" />
+  <node pkg="interactive_marker_proxy" type="proxy" name="interactive_marker_proxy" output="screen" args="topic_ns:=/map_annotator target_frame:=/base_link">
+  </node>
+</launch>

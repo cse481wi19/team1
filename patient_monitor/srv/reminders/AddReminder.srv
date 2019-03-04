@@ -1,0 +1,4 @@
+string message
+time[] times
+---
+int32 status
