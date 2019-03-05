@@ -6,3 +6,5 @@ from .lights import Lights
 from .vision import Vision
 from .sound import SoundSource, Sound, WaveFile
 from .expressions import Expressions
+from .speech import Speech
+from .servo import Servo

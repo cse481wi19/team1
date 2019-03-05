@@ -69,6 +69,13 @@ class Vision(object):
         self.last_cluster = ImageClustering()
         self.last_captured = ImageClustering()
 
+    def start(self):
+        self.activate("face_detector", config={"fps": 3})
+        rospy.sleep(0.5)
+        self.wait_until_ready(timeout=10)
+        self.req_mods([["activate", "face_detector", {"fps": 3}, {"skip_ratio": 3}]], [])
+        logger.info("Vision API face detector activated successfully")
+
     def shutdown(self):
         for module in self.active_modules():
             self.deactivate(module)
