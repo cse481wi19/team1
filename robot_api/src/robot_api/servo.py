@@ -81,28 +81,28 @@ class Servo(object):
 					pixels.append((0,0,255))
 			self.lights.put_pixels(pixels)
 
-    def _servoFace(self, msg):
-        faces = msg.faces
+	def _servoFace(self, msg):
+		faces = msg.faces
 
-        # Find the most confident face
-        confident_face = None
-        for face in faces:
-            if confident_face is None or confident_face.confidence < face.confidence:
-                confident_face = face
-            if confident_face is None: 
-                return
-            if self.isCentered(confident_face):
-                return
+ 		# Find the most confident face
+		confident_face = None
+		for face in faces:
+			if confident_face is None or confident_face.confidence < face.confidence:
+				confident_face = face
+			if confident_face is None: 
+				return
+			if self.isCentered(confident_face):
+				return
 
-        point = self.getFaceLocation(confident_face)
-        if point.point.x > 1:
-            self.base.go_forward(0.2)
-        elif point.point.x < 0.6:
-            self.base.go_forward(-0.2)
-            self.head.look_at(point, False)
+		point = self.getFaceLocation(confident_face)
+		if point.point.x > 1:
+			self.base.go_forward(0.2)
+		elif point.point.x < 0.6:
+			self.base.go_forward(-0.2)
+			self.head.look_at(point, False)
 
 	def callback(self, msg):
-        rospy.loginfo("Face changed. Callback triggered")
+		rospy.loginfo("Face changed. Callback triggered")
 		self._updateLights(msg.faces)
 		t1 = Thread(target=self._servoThread, args=[msg.faces])
 		t1.start()
