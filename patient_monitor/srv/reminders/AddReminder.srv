@@ -1,4 +1,4 @@
-string message
-time[] times
+int32 message_id
+int32[] hours
 ---
 int32 status
