@@ -19,6 +19,12 @@ document.addEventListener("DOMContentLoaded", function(event) {
        serviceType : '/patient_monitor/reminders/remove_reminder'
     });
 
+    clients.fireReminder = new ROSLIB.Service({
+        ros : ros,
+        name : '/patient_monitor/reminders/fire_reminder',
+        serviceType : '/patient_monitor/reminders/fire_reminder'
+     });
+
     clients.reminderList.subscribe(function(message) {
         content = "<table><tr><th>Patient</th><th>Message</th><th>Time(s) of Day</th><th></th><th></th></tr>"
         if (message.reminders.length == 0) {
@@ -29,7 +35,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
                     content += "<th>Patient 2085</th>"
                     content += "<th>" + get_message_by_id(reminder.message_id) + "</th>"
                     content += "<th>" + reminder.hours + "</th>"
-                    content +="<th><button onClick=\"reminderPWDOf(" + reminder.id + ")\">Remind Now</th>"
+                    content +="<th><button onClick=\"remindPWDOf(" + reminder.id + ")\">Remind Now</th>"
                     content +="<th><button onClick=\"deleteReminder(" + reminder.id + ")\">Delete</th>"
                 content += "</tr>"
             })
@@ -87,11 +93,10 @@ var deleteReminderUI = function(evt) {
     event.target[0].value = ""
 }
 
-var remindPWDOf = function(name) {
-    clients.manageReminder.callService(
+var remindPWDOf = function(id) {
+    clients.fireReminder.callService(
     new ROSLIB.ServiceRequest({
-        cmd : "remind",
-        reminderName: name,
+        id: id,
     }),
     function(result) {
         console.log(result)
@@ -99,6 +104,6 @@ var remindPWDOf = function(name) {
 }
 
 var remindPWDOfUI = function(evt) {
-    remindUserOf(event.target[0].value)
+    remindPWDOf(event.target[0].value)
     event.target[0].value = ""
 }
