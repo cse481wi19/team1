@@ -2,7 +2,7 @@
   <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch" />
 
   <!-- Monitoring -->
-  <node pkg="patient_monitor" type="reminders_node.py" name="reminders_server" />
+  <node pkg="patient_monitor" type="reminders_node.py" name="reminders_server" output="screen" />
 
   <!-- Vision -->
   <node pkg="web_video_server" type="web_video_server" name="web_video_server">
