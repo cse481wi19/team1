@@ -15,6 +15,8 @@ def wait_for_time();
 #   String type #Identifies the type of alert (I.e. speech, missing person, HELP) 
 #   String update #Identifies what has happened (i.e. "New" == this is a new alert type)
 
+# The object that lies within our dictinoary, can be edited here
+# to add and remove things as necessary.
 class alert_data:
     int32 seq
     String status
@@ -27,6 +29,8 @@ class AlertServer(object):
         # maps alert name to data necesasry for the alert
         self.alerts = {}
         self.alert_pub = rospy.Publisher("alerts/updates", Alert, queue_size=10)
+        self.alert_add_service = rospy.Service('patient_monitor_alerts/add_alerts', AddAlert, self.handle_add_reminder) # TODO: setup AddAlert
+        self.alert_remove_service = rospy.Service('patient_monitor_alerts/remove_reminder', RemoveAlert, self.handle_remove_reminder) 
 
     # Service implementation:
     # this willl have to handle adding the 
