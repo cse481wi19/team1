@@ -5,7 +5,7 @@ import rospy
 import pickle
 import os.path
 from enum import Enum
-from patient_monitor.srv.reminders import AddReminder, AddReminderResponse, RemoveReminder, RemoveReminderResponse
+from patient_monitor.srv import AddReminder, AddReminderResponse, RemoveReminder, RemoveReminderResponse
 from patient_monitor.msg import Reminder, Reminders
 from datetime import datetime, timedelta
 from dateutil import tz
@@ -23,12 +23,12 @@ def hour_to_time(base_time, hour):
 def get_start_of_today():
     today = datetime.utcnow().date()
     start_of_today = datetime(today.year, today.month, today.day, tzinfo=tz.tzutc()).timetuple()
-    start_of_today_time = time.mktime(start_of_today.timetuple())
+    start_of_today_time = time.mktime(start_of_today)
     return rospy.Time.from_sec(start_of_today_time)
 
 def get_end_of_today():
     today = datetime.utcnow().date()
-    end_of_today = datetime(today.year, today.month, today.day, tzinfo=tz.tzutc()).timetuple() + timedelta(1)
+    end_of_today = datetime(today.year, today.month, today.day, tzinfo=tz.tzutc()) + timedelta(1)
     end_of_today_time = time.mktime(end_of_today.timetuple())
     return rospy.Time.from_sec(end_of_today_time)
 
@@ -97,7 +97,7 @@ class RemindersServer(object):
         self.list_pub.publish(out)
 
     def reminder_loop_callback(self, event):
-        start_of_the_day = rospy.Time.from_sec(get_start_of_today())
+        start_of_the_day = get_start_of_today()
         for r in self.reminders:
             for i in range(0, len(r.hours)):
                 if rospy.Time().now() > hour_to_time(start_of_the_day, r.hours[i]) and r.fired_today[i] == 0:
