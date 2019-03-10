@@ -6,7 +6,6 @@ import robot_api
 import alsaaudio 
 import pyttsx
 
-from geometry_msgs.msg import Twist
 from std_msgs.msg import String
 from nav_msgs.msg import Odometry
 from pocketsphinx.pocketsphinx import *

@@ -20,7 +20,7 @@ def main():
     vision.start()
 
     # TODO Figure out if needed, Trigger servo's callback
-    # rospy.Subscriber('vision/results', FrameResults, servo.callback) 
+    rospy.Subscriber('vision/results', FrameResults, servo.callback) 
 
     rospy.spin()
 

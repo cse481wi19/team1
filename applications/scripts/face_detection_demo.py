@@ -173,7 +173,7 @@ class FaceChange(object):
 		# self.publishNumFaces(msg.faces) # this should always go last
 		# self.move_pub.publish(1)
 		# Move Kuri Base forward/backward
-		# self.facesDemo.navigateTo(1)
+		#delf.facesDemo.navigateTo(1)
                 
 def main():
 	rospy.init_node('face_detection_demo')
