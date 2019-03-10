@@ -33,7 +33,7 @@ def get_end_of_today():
     return rospy.Time.from_sec(end_of_today_time)
 
 ''' SERVICE DEFINITION '''
-class ReminderMessage:
+class ReminderMessage(Enum):
     MEDICINE = 0
     BINGO = 1
     SOCIAL_INTERACTION = 2
@@ -45,18 +45,17 @@ class Response(Enum):
     UNKNOWN_ERROR = 1
     UNKNOWN_ID = 2
     INVALID_PARAMS = 3
+    INVALID_MESSAGE = 4
 
 ''' REMINDER DEFINITION'''
 class ReminderStore(object):
     def __init__(self, id, message, hours):
-        if not id or type(id) is not int:
+        if id is None or type(id) is not int:
             raise ValueError("The ID must be an int!")
-        if not message or type(message) is not ReminderMessage:
+        if message is None or type(message) is not ReminderMessage:
             raise ValueError("Message must be a reminder message!")
-        if not hours or type(hours) is not list or len(hours) < 1:
+        if hours is None or len(hours) < 1:
             raise ValueError("hours must be a list!")
-        if len(hours) < 1 or type(hours[0]) is not type(rospy.Time().now()):
-            raise ValueError("hours must be a list of rospy hours!")
         self.id = id
         self.message = message
         self.hours = hours
@@ -93,7 +92,7 @@ class RemindersServer(object):
             r.id = x.id
             r.message_id = x.message.value
             r.hours = x.hours
-            out.append(r)
+            out.reminders.append(r)
         self.list_pub.publish(out)
 
     def reminder_loop_callback(self, event):
@@ -114,35 +113,36 @@ class RemindersServer(object):
         response.status = Response.SUCCESS
         message = None
         try:
-            message = ReminderMessage(request.message)
+            message = ReminderMessage(request.message_id)
         except:
-            response.status = Response.INVALID_MESSAGE
+                response.status = Response.INVALID_MESSAGE
         if len(request.hours) is 0:
             response.status = Response.INVALID_PARAMS
         if response.status is Response.SUCCESS:
             res = self.addReminder(message, request.hours)
             if not res:
-              response.status = Response.UNKNOWN_ERROR  
+              response.status = Response.UNKNOWN_ERROR
+	    response.status = response.status.value  
         self.publish_reminders()
         return response
 
     def handle_remove_reminder(self, request):
         response = RemoveReminderResponse()
-        response.status = Response.SUCCESS
+        response.status = Response.SUCCESS.value
         if self.removeReminder(request.id) is False:
-            response.status = Response.UNKNOWN_ID
+            response.status = Response.UNKNOWN_ID.value
         self.publish_reminders()
         return response
 
     ## Reminder Support Code
     def addReminder(self, message, hours):
-        id = 0
-        if len(self.reminders) > 0:
-            id = self.reminders[-1].id + 1
-        try:            
-            self.reminders.insert(ReminderStore(id, message, hours))
-        except ValueError:
-            return False
+        identifier = 0
+        if len(self.reminders) != 0:
+            identifier = self.reminders[-1].id + 1
+        # try:            
+        self.reminders.append(ReminderStore(identifier, message, hours))
+        #except ValueError:
+        #    return False
         return True
 
     def removeReminder(self, id):
