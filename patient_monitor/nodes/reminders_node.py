@@ -5,7 +5,7 @@ import rospy
 import pickle
 import os.path
 from enum import Enum
-from patient_monitor.srv import AddReminder, AddReminderResponse, RemoveReminder, RemoveReminderResponse
+from patient_monitor.srv import FireReminder, FireReminderResponse, AddReminder, AddReminderResponse, RemoveReminder, RemoveReminderResponse
 from patient_monitor.msg import Reminder, Reminders
 from datetime import datetime, timedelta
 from dateutil import tz
@@ -59,7 +59,12 @@ class ReminderStore(object):
         self.id = id
         self.message = message
         self.hours = hours
-        self.fired_today = [0] * len(hours)
+        self.fired_today = []
+        for hour in self.hours:
+            if rospy.Time().now() > hour_to_time(get_start_of_today(), hour):
+                self.fired_today.append(1)
+            else:
+                self.fired_today.append(0)
 
 class RemindersServer(object):
     ## Initialization
@@ -71,6 +76,7 @@ class RemindersServer(object):
         self.reminder_reset_timer = rospy.Timer(rospy.Duration(60 * 60 * 24), self.start_of_the_day_callback)
         self.reminder_add_service = rospy.Service('patient_monitor/reminders/add_reminder', AddReminder, self.handle_add_reminder)
         self.reminder_remove_service = rospy.Service('patient_monitor/reminders/remove_reminder', RemoveReminder, self.handle_remove_reminder) 
+        self.reminder_remove_service = rospy.Service('patient_monitor/reminders/fire_reminder', FireReminder, self.handle_fire_reminder) 
         if path: self.load_reminders_from_file(path)
 
     def load_reminders_from_file(self, path):
@@ -122,7 +128,7 @@ class RemindersServer(object):
             res = self.addReminder(message, request.hours)
             if not res:
               response.status = Response.UNKNOWN_ERROR
-	    response.status = response.status.value  
+        response.status = response.status.value  
         self.publish_reminders()
         return response
 
@@ -132,6 +138,13 @@ class RemindersServer(object):
         if self.removeReminder(request.id) is False:
             response.status = Response.UNKNOWN_ID.value
         self.publish_reminders()
+        return response
+
+    def handle_fire_reminder(self, request):
+        response = FireReminderResponse()
+        response.status = Response.SUCCESS.value
+        if self.fireReminder(request.id) is False:
+            response.status = Response.UNKNOWN_ID.value
         return response
 
     ## Reminder Support Code
@@ -154,14 +167,16 @@ class RemindersServer(object):
 
     def fireReminder(self, id):
         reminder = None
-        for r in Reminders:
+        for r in self.reminders:
             if r.id == id:
                 reminder = r
                 break
+        if reminder is None: return False
         self.fireReminderWithObject(reminder)
+        return True
 
     def fireReminderWithObject(self, reminder):
-        pass
+        print("Firing message " + str(reminder.message))
 
 def main():
     rospy.init_node('patient_monitor_reminders')
