@@ -67,11 +67,11 @@ class RemindersServer(object):
     def __init__(self, path=None):
         # Init Server
         self.reminders = []
-        self.list_pub = rospy.Publisher('reminders/reminder_list', Reminders, queue_size=10, latch=True)
+        self.list_pub = rospy.Publisher('patient_monitor/reminders/reminder_list', Reminders, queue_size=10, latch=True)
         self.reminder_timer = rospy.Timer(rospy.Duration(2), self.reminder_loop_callback)
         self.reminder_reset_timer = rospy.Timer(rospy.Duration(60 * 60 * 24), self.start_of_the_day_callback)
-        self.reminder_add_service = rospy.Service('patient_monitor_reminders/add_reminder', AddReminder, self.handle_add_reminder)
-        self.reminder_remove_service = rospy.Service('patient_monitor_reminders/remove_reminder', RemoveReminder, self.handle_remove_reminder) 
+        self.reminder_add_service = rospy.Service('patient_monitor/reminders/add_reminder', AddReminder, self.handle_add_reminder)
+        self.reminder_remove_service = rospy.Service('patient_monitor/reminders/remove_reminder', RemoveReminder, self.handle_remove_reminder) 
         if path: self.load_reminders_from_file(path)
 
     def load_reminders_from_file(self, path):

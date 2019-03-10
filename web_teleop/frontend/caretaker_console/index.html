@@ -11,6 +11,7 @@
     <script type="text/javascript" src="js/reminder_ui.js"></script>
 
     <link rel="stylesheet" type="text/css" href="css/index.css" />
+    <link rel="stylesheet" type="text/css" href="css/reminderPane.css" />
     <link href="https://fonts.googleapis.com/css?family=Pacifico|Roboto" rel="stylesheet">
   </head>
 
@@ -21,23 +22,45 @@
     </div>
   </div>
 
-  <div id="forms">
-    <form onsubmit="createReminderUI(); return false">
-      Create Reminder: <input type="text">
-      With Message: <input type="text">
-      At Time: <input type="time">
-      <input type="submit">
-    </form>
-
-    <form onsubmit="deleteReminderUI(); return false">
-      Delete Reminder: <input type="text">
-      <input type="submit">
-    </form>
-
-    <form onsubmit="remindUserOf(); return false">
-      Remind User of: <input type="text">
-      <input type="submit">
-    </form>
+  <div class="mainPane" id="reminderPane">
+      <div id="forms">
+          <form onsubmit="createReminderUI(); return false">
+            Create Reminder With Message:
+              <select name="reminderMessages">
+                <option value="0">Take Your Medicine!</option>
+                <option value="1">Go to Bingo!</option>
+                <option value="2">Talk to someone!</option>
+                <option value="3">Time to eat!</option>
+                <option value="4">Remind patient who they are!</option>
+              </select>&nbsp;&nbsp;&nbsp;&nbsp;
+            At this hour of the day (24hr time): <input type="number" name="quantity" min="0" max="23">
+            <input type="submit">
+          </form>
+        </div>
+        <table style="width:100%">
+          <tr>
+            <th>Patient</th>
+            <th>Message</th>
+            <th>Time(s) of Day</th> 
+            <th></th>
+            <th></th>
+          </tr>
+          <div id="reminderList">
+            <tr>
+              <th>There's nothing here!</th>
+              <th></th>
+              <th></th>
+              <th></th>
+              <th></th>
+            </tr>
+          </div>
+      </table>
   </div>
-  <div id="reminderList"></div>
+
+  <footer>
+    <i>University of Washington</i>
+    <div class="rightText">CSE 481C 19Wi</div>
+  </br>
+  <i style="color: #b7a57a">BE BOUNDLESS</i><div class="rightText">Team 1 Project UI</div>
+  </footer>
 </html>
