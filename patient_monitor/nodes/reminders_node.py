@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import robot_api
+from robot_api import SoundSource
 import rospy
 import pickle
 import os.path
@@ -70,6 +70,7 @@ class RemindersServer(object):
     ## Initialization
     def __init__(self, path=None):
         # Init Server
+        self.soundSource = SoundSource("reminders")
         self.reminders = []
         self.list_pub = rospy.Publisher('patient_monitor/reminders/reminder_list', Reminders, queue_size=10, latch=True)
         self.reminder_timer = rospy.Timer(rospy.Duration(2), self.reminder_loop_callback)
@@ -177,6 +178,16 @@ class RemindersServer(object):
 
     def fireReminderWithObject(self, reminder):
         print("Firing message " + str(reminder.message))
+        if reminder.message == ReminderMessage.MEDICINE:
+            self.soundSource.play("/home/team1/catkin_ws/src/patient_monitor/sounds/reminders/medicine.wav")
+        elif reminder.message == ReminderMessage.BINGO:
+            self.soundSource.play("/home/team1/catkin_ws/src/patient_monitor/sounds/reminders/bingo.wav")
+        elif reminder.message == ReminderMessage.SOCIAL_INTERACTION:
+            self.soundSource.play("/home/team1/catkin_ws/src/patient_monitor/sounds/reminders/social_interaction.wav")
+        elif reminder.message == ReminderMessage.WHO_AM_I:
+            self.soundSource.play("/home/team1/catkin_ws/src/patient_monitor/sounds/reminders/who_am_i.wav")
+        elif reminder.message == ReminderMessage.EAT:
+            self.soundSource.play("/home/team1/catkin_ws/src/patient_monitor/sounds/reminders/eat.wav")
 
 def main():
     rospy.init_node('patient_monitor_reminders')
