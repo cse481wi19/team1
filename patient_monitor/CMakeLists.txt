@@ -49,6 +49,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate messages in the 'msg' folder
 add_message_files(
    FILES
+   Alert.msg
    Reminder.msg
    Reminders.msg
  )
@@ -56,8 +57,11 @@ add_message_files(
 ## Generate services in the 'srv' folder
 add_service_files(
    FILES
+   alerts/AddAlert.srv
+   alerts/RemAlert.srv
    reminders/AddReminder.srv
    reminders/RemoveReminder.srv
+   reminders/FireReminder.srv
  )
 
 ## Generate actions in the 'action' folder

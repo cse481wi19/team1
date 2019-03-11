@@ -1,3 +1,3 @@
-int32 seq
-String name
-String update
+float32 time
+int32 id
+string update
