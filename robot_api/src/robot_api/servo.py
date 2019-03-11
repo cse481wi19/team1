@@ -117,7 +117,7 @@ class Servo(object):
     #         self.base.go_forward(-0.2)
     #         self.head.look_at(point, False)
 
-    def navigateTo(self, num):
+        def navigateTo(self, num):
 		if (self.lastFacePos is not None and self.lock.acquire(blocking=False)):
 			self.expressions.nod_head()
 			pointStamped = self.getPointStampedInFrame(pointStamped, "base_link")
