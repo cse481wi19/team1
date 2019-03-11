@@ -14,8 +14,7 @@ class Speech(object):
     """Class to control Luci's speech interactions """
 
     def __init__(self):
-        # Initialize node
-        #rospy.init_node("luci_control")
+
         rospy.on_shutdown(self.shutdown)
 
         # Create a publisher for the grammar data and raw audio

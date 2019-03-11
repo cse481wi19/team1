@@ -17,7 +17,23 @@ class Servo(object):
 		self.head = robot_api.Head()
 		self.lock = RLock()
 		self.base = robot_api.Base()
+		self.lastFacePos = None
+		self.vision = robot_api.Vision()
+
+		# Activate Vision API's Face Detector
+		self.vision.activate("face_detector", config={"fps": 3})
 		rospy.sleep(0.5)
+		self.vision.wait_until_ready(timeout=10)
+		self.vision.req_mods([["activate", "face_detector", {"fps": 3}, {"skip_ratio": 3}]], [])
+
+		# Trigger callback
+		rospy.Subscriber('vision/results', FrameResults, self.callback) 
+		rospy.Subscriber('vision/most_confident_face_pos', PointStamped, self.onFacePos) 
+		rospy.Subscriber('come_here_kuri', Int8, self.navigateTo) 
+
+		rospy.sleep(0.5)
+
+		rospy.spin()
 
 	# Publishes the number of faces found in a frame.
 	# Params:
@@ -100,6 +116,35 @@ class Servo(object):
     #     elif point.point.x < 0.6:
     #         self.base.go_forward(-0.2)
     #         self.head.look_at(point, False)
+
+    def navigateTo(self, num):
+		if (self.lastFacePos is not None and self.lock.acquire(blocking=False)):
+			self.expressions.nod_head()
+			pointStamped = self.getPointStampedInFrame(pointStamped, "base_link")
+			distance_to_base = sqrt(pointStamped.point.x ** 2 + pointStamped.point.y ** 2 + pointStamped.point.z ** 2)
+			unit_vector = { "x": pointStamped.point.x / distance_to_base,
+							"y": pointStamped.point.y / distance_to_base }
+
+			pointStamped.point.x = unit_vector["x"] * (distance_to_base - 0.5)
+			pointStamped.point.y = unit_vector["y"] * (distance_to_base - 0.5)
+
+			quaternion = Quaternion()
+			quaternion.w = 1
+
+			pose = Pose()
+			pose.position = pointStamped.point
+			pose.orientation = quaternion
+
+			poseStamped = PoseStamped()
+			poseStamped.header = pointStamped.header
+			pointStamped.pose = pose
+
+			self.move_pub.publish(poseStamped)
+			self.lock.release()
+
+	def onFacePos(self, posStamped):
+		self.lastFacePos = posStamped
+
 	def callback(self, msg):
 		rospy.loginfo("Face changed. Callback triggered")
 		self._updateLights(msg.faces)
