@@ -34,4 +34,6 @@ public <question> = <guess> | <food> | <time> | <bingo> | <outside> | <weather> 
 <do> = DO I (HAVE ANY SOCIAL EVENTS TODAY | NEED TO TAKE ANY MEDICINE TODAY)
 <salutation> = HI | HELLO | HEY | GOOD (MORNING | NIGHT);
 <feelings> = HAPPY | SAD | HUNGRY;
-<utterance> = OKAY | YES | NO | MAYBE | NOT NOW | MAYBE LATER;
+<yes> = OKAY | YES
+<no> = NO | NOT NOW | MAYBE LATER;
+<utterance> = <yes> | <no> | MAYBE
