@@ -112,24 +112,32 @@ class LuciControl(object):
     def parse_results(self, detected_words): #pylint: disable=too-many-branches
         """Function to perform action (change colors/expression) on detected word"""
         if self._isDetected(detected_words, ['WEATHER']):
+            # Warm and sunny
             self._play('1_1.wav')
         elif self._isDetected(detected_words, ['OUTSIDE']):
+            # Sure I will let the nurse know
             self._play('1_2.wav')
         elif self._isDetected(detected_words, ['DAY']):
+            # Today is Wednesday
             self._play('2_1.wav')
         elif self._isDetected(detected_words, ['GREAT']):
+            # Yes it starts at 6 oclock
             self._play('2_2.wav')
         elif self._isDetected(detected_words, ['HELP']):
+            # What is wrong? I have alerted the nurse
             self._play('3_1.wav')
         elif self._isDetected(detected_words, ['CANNOT']):
+            # Stay calm the nurse is on the way
             self._play('3_2.wav')
         elif self._isDetected(detected_words, ['HOME']):
+            # Do you want me to get the nurse
             self._play('4_1.wav')
         elif self._isDetected(detected_words, ['NO']):
             self._play('4_2.wav')
         elif self._isDetected(detected_words, ['YES']):
             self._play('4_3.wav')
         elif self._isDetected(detected_words, ['GUESS']):
+            # What the hell
             self._play('5_1.wav')
         elif self._isDetected(detected_words, ['WON']):
             self._play('5_2.wav')

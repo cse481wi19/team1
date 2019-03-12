@@ -74,11 +74,14 @@ class Servo(object):
 	#  Returns:
 	# 		A PointStamped message
 	def getFaceLocation(self, face):
-		face_size1 = face.bb[3] * face.bb[2] * face.size * 100.0
-		result = PointStamped(header=face.header, point=Point((face.size **-0.4) * 0.3, -0.75*(face.center.x - 0.5), -1*(face.center.y - 0.5)))
-		# rospy.loginfo(face)
-		result.header.frame_id = robot_api.Head.EYES_FRAME
-		return result
+		if face is None:
+			return None
+		else:
+			face_size1 = face.bb[3] * face.bb[2] * face.size * 100.0
+			result = PointStamped(header=face.header, point=Point((face.size **-0.4) * 0.3, -0.75*(face.center.x - 0.5), -1*(face.center.y - 0.5)))
+			# rospy.loginfo(face)
+			result.header.frame_id = robot_api.Head.EYES_FRAME
+			return result
 
 	def _servoThread(self, msg):
 		if (self.lock.acquire(blocking=False)):
@@ -95,29 +98,33 @@ class Servo(object):
 		if num_faces < 15:
 			for x in range(15-num_faces):
 				pixels.append((0,0,255))
-            self.lights.put_pixels(pixels)
+        
+		self.lights.put_pixels(pixels)
 
-    # def _servoFace(self, msg):
-    #     faces = msg.faces
+	def _servoFace(self, msg):
+		faces = msg.faces
 
-    #     # Find the most confident face
-    #     confident_face = None
-    #     for face in faces:
-    #         if confident_face is None or confident_face.confidence < face.confidence:
-    #             confident_face = face
-    #         if confident_face is None: 
-    #             return
-    #         if self.isCentered(confident_face):
-    #             return
+		# Find the most confident face
+		confident_face = None
+		for face in faces:
+			if confident_face is None or confident_face.confidence < face.confidence:
+				confident_face = face
+			if confident_face is None: 
+				return
+			if self.isCentered(confident_face):
+				return
 
-    #     point = self.getFaceLocation(confident_face)
-    #     if point.point.x > 1:
-    #         self.base.go_forward(0.2)
-    #     elif point.point.x < 0.6:
-    #         self.base.go_forward(-0.2)
-    #         self.head.look_at(point, False)
+		point = self.getFaceLocation(confident_face)
+		if point is None:
+			return
+		else:
+			if point.point.x > 1:
+				self.base.go_forward(0.2)
+			elif point.point.x < 0.6:
+				self.base.go_forward(-0.2)
+				self.head.look_at(point, False)
 
-        def navigateTo(self, num):
+	def navigateTo(self, num):
 		if (self.lastFacePos is not None and self.lock.acquire(blocking=False)):
 			self.expressions.nod_head()
 			pointStamped = self.getPointStampedInFrame(pointStamped, "base_link")

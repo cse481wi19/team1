@@ -25,8 +25,8 @@ class Speech(object):
         rospy.Subscriber("grammar_data", String, self.parse_results)
 
         # Set language model and dictionary
-        self.class_lm = 'corpus/luci.lm'
-        self.dict = 'corpus/luci.dic'
+        self.class_lm = 'corpus/final.lm'
+        self.dict = 'corpus/final.dic'
 
         # Used in process_audio (from asr_test.py)
         self.in_speech_bf = False
@@ -90,7 +90,8 @@ class Speech(object):
                 sleep_time = 4
 
 
-        sound = self.sound_source.play('/home/team1/catkin_ws/src/sound_effects/interactions/' + file)
+        # Somehow have nested sound_effects -- please fix
+        sound = self.sound_source.play('/home/team1/catkin_ws/src/sound_effects/sound_effects/final_interactions/' + file)
         rospy.sleep(sleep_time)
         self.sound_source.cancel(sound)
         rospy.sleep(1)
@@ -104,31 +105,30 @@ class Speech(object):
 
     def parse_results(self, detected_words): #pylint: disable=too-many-branches
         """Function to perform action (change colors/expression) on detected word"""
-        if self._isDetected(detected_words, ['WEATHER']):
-            self._play('1_1.wav')
-        elif self._isDetected(detected_words, ['OUTSIDE']):
-            self._play('1_2.wav')
-        elif self._isDetected(detected_words, ['DAY']):
-            self._play('2_1.wav')
-        elif self._isDetected(detected_words, ['GREAT']):
-            self._play('2_2.wav')
+        # TODO need to increase sleep_time for some of the wav files
+        if self._isDetected(detected_words, ['DAY']):
+            # PWD: Hey Luci, what day is it?
+            # Luci: Today is Wednesday, it's also bingo night!
+            self._play('bingo_1.wav')
+        elif self._isDetected(detected_words, ['NEED']):
+            # PWD: Great, do I need anything!
+            # Luci: Yes! Grab your bingo card from my bag
+            self._play('bingo_2.wav')
+        elif self._isDetected(detected_words, ['WANT']):
+            # PWD: I don't want to.
+            # Luci: I understand your frustration, but you have to. Please don't
+            # make me call the nurse.
+            self._play('reminder_2.wav')
         elif self._isDetected(detected_words, ['HELP']):
-            self._play('3_1.wav')
-        elif self._isDetected(detected_words, ['CANNOT']):
-            self._play('3_2.wav')
+            # PWD: Help...where am I?
+            # Luci: What is wrong? I have alerted the 
+            self._play('alert_1.wav')
         elif self._isDetected(detected_words, ['HOME']):
-            self._play('4_1.wav')
-        elif self._isDetected(detected_words, ['NO']):
-            self._play('4_2.wav')
-        elif self._isDetected(detected_words, ['YES']):
-            self._play('4_3.wav')
-        elif self._isDetected(detected_words, ['GUESS']):
-            self._play('5_1.wav')
-        elif self._isDetected(detected_words, ['WON']):
-            self._play('5_2.wav')
-        # else:
-        #     self._play('0_1.wav')
-
+            # PWD: I don't know where I am, I want to go home
+            # Luci: Stay calm, here's some music while we wait for the nurse.
+            self._play('alert_2.wav')
+            self._play('alert_frank.wav')
+        
     def start_recognizer(self):
         """Function to handle lm or grammar processing of audio."""
 
@@ -171,5 +171,5 @@ class Speech(object):
         """
         command executed after Ctrl+C is pressed
         """
-        rospy.loginfo("Stop LuciControl")
+        rospy.loginfo("Stop Speech")
         rospy.sleep(1)

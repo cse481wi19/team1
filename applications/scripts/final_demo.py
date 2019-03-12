@@ -4,22 +4,21 @@
 
 import rospy
 import robot_api
-
+import numpy
 from vision_msgs.msg import FrameResults
 from threading import Thread
+
+speech = None
+servo = None
 
 def main():
     rospy.init_node('final_demo')
 
-    # Initialize objects
-
-    self.speech = None
-    self.servo = None
-
-    speech_thread = Thread(target=self._init_speech)
+    # Initialize speech and servo nodes
+    speech_thread = Thread(target=_init_speech)
     speech_thread.start()
 
-    servo_thread = Thread(target=self._init_servo)
+    servo_thread = Thread(target=_init_servo)
     servo_thread.start()
  
     # TODO: Implement demos below
@@ -41,10 +40,10 @@ def main():
     rospy.spin()
 
 def _init_speech():
-    self.speech = robot_api.Speech()
+    speech = robot_api.Speech()
 
 def _init_servo():
-    self.servo = robot_api.Servo()
+    servo = robot_api.Servo()
 
 if __name__ == '__main__':
 	main()
