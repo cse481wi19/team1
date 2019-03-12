@@ -73,21 +73,13 @@ class Speech(object):
         """Function to neutrally respond to given words"""
         #self.expressions.be_neutral()
         sleep_time = 4
-        
-        if (file[0] == '3'):
-            # Conversation 3 (about alerting the nurse)
-            #self.lights.put_pixels([(255, 7, 7)]*15)    # RED
-            if file[0] == '3_1':
-                sleep_time = 5
-            else:
-                sleep_time = 4
-        elif (file[0] == '4'):
-            # Conversation 4 (about going home)
-            #self.lights.put_pixels([(0, 75, 173)]*15)   # BLUE
-            if file[0] == '4_3':
-                sleep_time = 30
-            else:
-                sleep_time = 4
+
+        if (file[0] == 'reminder_2'):
+            sleep_time = 10
+        elif (file[0] == 'alert_2'):
+            sleep_time = 10
+        elif (file[0] == 'alert_frank'):
+            sleep_time = 30
 
         sound = self.sound_source.play('/home/team1/catkin_ws/src/sound_effects/final_interactions/' + file)
         rospy.sleep(sleep_time)
@@ -103,7 +95,6 @@ class Speech(object):
 
     def parse_results(self, detected_words): #pylint: disable=too-many-branches
         """Function to perform action (change colors/expression) on detected word"""
-        # TODO need to increase sleep_time for some of the wav files
         if self._isDetected(detected_words, ['DAY']):
             # PWD: Hey Luci, what day is it?
             # Luci: Today is Wednesday, it's also bingo night!
@@ -119,7 +110,7 @@ class Speech(object):
             self._play('reminder_2.wav')
         elif self._isDetected(detected_words, ['HELP']):
             # PWD: Help...where am I?
-            # Luci: What is wrong? I have alerted the 
+            # Luci: What is wrong? I have alerted the nurse
             self._play('alert_1.wav')
         elif self._isDetected(detected_words, ['HOME']):
             # PWD: I don't know where I am, I want to go home
