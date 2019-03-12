@@ -89,9 +89,7 @@ class Speech(object):
             else:
                 sleep_time = 4
 
-
-        # Somehow have nested sound_effects -- please fix
-        sound = self.sound_source.play('/home/team1/catkin_ws/src/sound_effects/sound_effects/final_interactions/' + file)
+        sound = self.sound_source.play('/home/team1/catkin_ws/src/sound_effects/final_interactions/' + file)
         rospy.sleep(sleep_time)
         self.sound_source.cancel(sound)
         rospy.sleep(1)
