@@ -25,6 +25,7 @@ ros.on('close', function() {
 
 // Create a connection to the rosbridge WebSocket server.
 ros.connect('ws://shimada.cs.washington.edu:9090');
+//ros.connect('ws://panang.hcrlab.cs.washington.edu:11311');
 
 document.addEventListener("DOMContentLoaded", function(event) {
     // Setup here
