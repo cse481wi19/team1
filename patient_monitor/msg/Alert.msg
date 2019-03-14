@@ -1,3 +1,3 @@
-float32 time
+string[] time
 int32 id
 string update
