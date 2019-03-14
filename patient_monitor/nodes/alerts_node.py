@@ -146,13 +146,13 @@ def main():
     server = AlertServer()
     
     #testing
-    rospy.wait_for_service('patient_monitor/alerts/add_alert')
-    request = AddAlert()
-    request.topic = 'patient_monitor/alerts'
-    request.id = 1
-    server.handle_add_alert(request)
-    da_pub = rospy.Publisher('patient_monitor/alerts', Alert, queue_size=10)
-    da_pub.publish(Alert([],1,"Damn boi he thicc"))
+    #rospy.wait_for_service('patient_monitor/alerts/add_alert')
+    #request = AddAlert()
+    #request.topic = 'patient_monitor/alerts'
+    #request.id = 1
+    #server.handle_add_alert(request)
+    #da_pub = rospy.Publisher('patient_monitor/alerts', Alert, queue_size=10)
+    #da_pub.publish(Alert([],1,"Damn boi he thicc"))
 
     rospy.spin()
 
