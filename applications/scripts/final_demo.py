@@ -22,8 +22,7 @@ def main():
     servo_thread.start()
  
     # TODO: Implement demos below
-    # TODO: add necessary words to corpus
-
+    
     # Bingo Demo
         # Convo
         # Luci turns around after saying grab my bingo card
