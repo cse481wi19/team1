@@ -9,6 +9,8 @@ from nav_msgs.msg import Odometry
 from pocketsphinx.pocketsphinx import *
 from sphinxbase.sphinxbase import *
 from threading import Thread
+from patient_monitor.msg import Alert
+from patient_monitor.srv import AddAlert
 
 class Speech(object):
     """Class to control Luci's speech interactions """
@@ -20,7 +22,10 @@ class Speech(object):
         # Create a publisher for the grammar data and raw audio
         self.pub_grammar = rospy.Publisher("grammar_data", String, queue_size=10)
         self.pub_audio = rospy.Publisher("raw_audio", String, queue_size=10)
-   
+        self.alert_pub = rospy.Publisher('patient_monitor/alerts', Alert, queue_size=10)
+        self.alert_client(1)
+        # self.alert_client(2)
+        # self.alert_client(3)
         # Subscribe to grammar data output
         rospy.Subscriber("grammar_data", String, self.parse_results)
 
@@ -81,6 +86,7 @@ class Speech(object):
         elif (file[0] == 'alert_frank'):
             sleep_time = 30
 
+        # TODO rsync over final_interactions WONT WORK WITHOUT THAT
         sound = self.sound_source.play('/home/team1/catkin_ws/src/sound_effects/final_interactions/' + file)
         rospy.sleep(sleep_time)
         self.sound_source.cancel(sound)
@@ -112,6 +118,7 @@ class Speech(object):
             # PWD: Help...where am I?
             # Luci: What is wrong? I have alerted the nurse
             self._play('alert_1.wav')
+            self.alert_pub.publish(Alert([], 1, 'Patient Needs Help'))
         elif self._isDetected(detected_words, ['HOME']):
             # PWD: I don't know where I am, I want to go home
             # Luci: Stay calm, here's some music while we wait for the nurse.
@@ -155,6 +162,15 @@ class Speech(object):
                     # NOTE Consider removing grammar_data topic and calling parse_results directly 
                     self.pub_grammar.publish(self.decoder.hyp().hypstr)
                 self.decoder.start_utt()
+
+    def alert_client(self, id):
+        rospy.wait_for_service('patient_monitor/alerts/add_alerts')
+        try:
+            add_alert = rospy.ServiceProxy('patient_monitor/alerts/add_alerts', AddAlert)
+            resp = add_alert(AddAlert(id, 'patient_monitor/alerts'))
+            return resp.success
+        except rospy.ServiceException, e:
+            print "Service call failed: %s"%e
 
     def shutdown(self):
         """

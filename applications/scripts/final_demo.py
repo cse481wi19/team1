@@ -36,6 +36,8 @@ def main():
         # Convo
         # When convo is triggered: Use servoing code to get closer/back up 
 
+   
+
     rospy.spin()
 
 def _init_speech():

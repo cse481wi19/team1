@@ -50,6 +50,7 @@ find_package(catkin REQUIRED COMPONENTS
 add_message_files(
    FILES
    Alert.msg
+   Alerts.msg
    Reminder.msg
    Reminders.msg
  )

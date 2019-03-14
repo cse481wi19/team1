@@ -1,12 +1,15 @@
 #!/usr/bin/env python
 
+
 import robot_api
 import rospy
-from patient_monitor.msg import Alert
+import time
+from patient_monitor.msg import Alert, Alerts
 from patient_monitor.srv import AddAlert, AddAlertResponse, RemAlert, RemAlertResponse
+from enum import Enum
 
-def wait_for_time();
-    while rospy.Time().now.to_sec == 0:
+def wait_for_time():
+    while rospy.Time().now().to_sec() == 0:
         pass
 
 # comments explaining msg types:
@@ -18,11 +21,12 @@ def wait_for_time();
 
 # The object that lies within our dictinoary, can be edited here
 # to add and remove things as necessary.
-class alert_data:
-    int32 count #Useful if we only want to send an alert after something has happened x times
-    int32 id
-    String status
-    Subscriber sub #subsriber to listen
+class alert_data():
+    def __init__(self, subscriber):
+        self.times = []
+        self.id = 0
+        self.status = ""
+        self.sub = subscriber # subsriber to listen
 
 class Alert_ID(Enum):
     TAKE_MED = 0
@@ -39,8 +43,11 @@ class AlertServer(object):
         # maps alert name to data necesasry for the alert
         self.alerts = {}
         self.alert_pub = rospy.Publisher("/patient_monitor/alerts/current_alert", Alert, queue_size=10)
-        self.alert_add_service = rospy.Service('patient_monitor_alerts/add_alerts', AddAlert, self.handle_add_alert)
-        self.alert_remove_service = rospy.Service('patient_monitor_alerts/remove_reminder', RemAlert, self.handle_rem_alert) 
+        self.alert_list_pub = rospy.Publisher("/patient_monitor/alerts/alert_list", Alerts, queue_size=10, latch=True)
+        self.alert_add_service = rospy.Service('patient_monitor/alerts/add_alert', AddAlert, self.handle_add_alert)
+        self.alert_remove_service = rospy.Service('patient_monitor/alerts/remove_alert', RemAlert, self.handle_rem_alert) 
+        
+        
 
     # Service implementation:
     # this willl have to handle adding the 
@@ -52,21 +59,25 @@ class AlertServer(object):
 
         if AlertRequest.id in self.alerts or AlertRequest.id < 0 or AlertRequest.id > 4:
             #  Already exists, don't add
-            result.success = false
+            result.success = False
             return result
+
+        add_time = time.ctime(rospy.Time().now().to_sec())
                 
         # make a new subscriber node to listen for updatess
-        result.success = true
-        self.alerts[AlertRequest.id] = alert_data()
+        result.success = True
+        self.alerts[AlertRequest.id] = alert_data(rospy.Subscriber(AlertRequest.topic, Alert, callback=self.alert_update_callback))
         self.alerts[AlertRequest.id].status = "NEW"
-        self.alerts[AlertRequest.id].sub = rospy.Subscriber(AlertRequest.topic, Alert, callback=self.alert_update_callback)
+        self.alerts[AlertRequest.id].id = AlertRequest.id
+        self.alerts[AlertRequest.id].times.append(time.ctime(rospy.Time().now().to_sec()))
 
         # Notify webserver we have a new alert
         note = Alert()
-        note.time = rospy.Time().now().to_sec()
-        note.name = new_alert.id
-        note.status = new_alert.status
+        note.time.append(add_time)
+        note.id = AlertRequest.id
+        note.update = "NEW"
         self.alert_pub.publish(note)
+        self.publish_alerts()
         return result
 
 
@@ -75,18 +86,20 @@ class AlertServer(object):
         result = RemAlertResponse()
         if (AlertRequest.id in self.alerts):
             # The alert exists, remove it
-            del self.alerts[AlertRequest.id]
-            result.success = true
+            self.alerts[AlertRequest.id].times = []
+            self.alerts[AlertRequest.id].status = "Cleared"
+            result.success = True
         else:
             # Doesn't exist
-            result.success = false
+            result.success = False
             return result
         # Notify webserver we have deleted the alert
-        note = Alert()
-        note.time = rospy.Time().now().to_sec()
-        note.name = AlertRequest.id
-        note.status = "REMOVED"
-        self.alert_pub.publish(note)
+        #note = Alert()
+        #note.time = rospy.Time().now().to_sec()
+        #note.name = AlertRequest.id
+        #note.status = "Cleared"
+        #self.alert_pub.publish(note)
+        self.publish_alerts()
         return result
 
 
@@ -100,8 +113,7 @@ class AlertServer(object):
         # so it can be easily changed
         if(msg.id in self.alerts):
             # Check if this is a new update
-            if self.alerts[msg.id].status == msg.update:
-                return
+            self.alerts[msg.id].times.append(time.ctime(rospy.Time().now().to_sec()))
             # Something changed!
             self.alerts[msg.id].status = msg.update
         else:
@@ -109,18 +121,41 @@ class AlertServer(object):
             #self.alerts[msg.id] = alert_data()
             #self.alerts[msg.id].status = msg.update
         # Publish Alert msg to web server :w
-        result = Alert()
-        result.time = rospy.Time().now().to_sec()
-        result.name = msg.id
-        result.status = msg.update
-        self.alert_pub.publish(result)
+        #result = Alert()
+        #result.time = rospy.Time().now().to_sec()
+        #result.name = msg.id
+        #result.status = msg.update
+        #self.alert_pub.publish(result)
+        self.publish_alerts()
+
+    def publish_alerts(self):
+        result = Alerts()
+        for key, val in self.alerts.items():
+            new_alert = Alert()
+            new_alert.time = val.times
+            new_alert.id = val.id
+            new_alert.update = val.status
+            result.alerts.append(new_alert)
+        self.alert_list_pub.publish(result)
 
 # make a main that sets up the services to either add or remove alerts
 def main():
+    rospy.loginfo("main")
     rospy.init_node('patient_monitor_alerts')
     wait_for_time()
     server = AlertServer()
+    
+    #testing
+    rospy.wait_for_service('patient_monitor/alerts/add_alert')
+    request = AddAlert()
+    request.topic = 'patient_monitor/alerts'
+    request.id = 1
+    server.handle_add_alert(request)
+    da_pub = rospy.Publisher('patient_monitor/alerts', Alert, queue_size=10)
+    da_pub.publish(Alert([],1,"Damn boi he thicc"))
+
     rospy.spin()
 
 if __name__ == '__main__':
+    rospy.loginfo("main")
     main()
