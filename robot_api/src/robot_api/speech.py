@@ -22,10 +22,11 @@ class Speech(object):
         # Create a publisher for the grammar data and raw audio
         self.pub_grammar = rospy.Publisher("grammar_data", String, queue_size=10)
         self.pub_audio = rospy.Publisher("raw_audio", String, queue_size=10)
+
         self.alert_pub = rospy.Publisher('patient_monitor/alerts', Alert, queue_size=10)
         self.alert_client(1)
-        # self.alert_client(2)
-        # self.alert_client(3)
+        #self.alert_client(2)
+        #self.alert_client(3)
         # Subscribe to grammar data output
         rospy.Subscriber("grammar_data", String, self.parse_results)
 
@@ -163,11 +164,11 @@ class Speech(object):
                     self.pub_grammar.publish(self.decoder.hyp().hypstr)
                 self.decoder.start_utt()
 
-    def alert_client(self, id):
-        rospy.wait_for_service('patient_monitor/alerts/add_alerts')
+    def alert_client(self):
+        rospy.wait_for_service('/patient_monitor/alerts/add_alert')
         try:
-            add_alert = rospy.ServiceProxy('patient_monitor/alerts/add_alerts', AddAlert)
-            resp = add_alert(AddAlert(id, 'patient_monitor/alerts'))
+            add_alert = rospy.ServiceProxy('/patient_monitor/alerts/add_alert', AddAlert)
+            resp = add_alert(id, 'patient_monitor/alerts')
             return resp.success
         except rospy.ServiceException, e:
             print "Service call failed: %s"%e
